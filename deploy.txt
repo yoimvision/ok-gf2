@@ -1,0 +1,11 @@
+src
+ok
+config.py
+main.py
+ok-ls.exe
+main.py
+assets
+icon.png
+requirements.txt
+README.md
+.gitignore
