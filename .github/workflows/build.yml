@@ -40,11 +40,41 @@ jobs:
           set PYTHONLEGACYWINDOWSSTDIO=utf-8
           echo PYTHONIOENCODING=utf-8 >> $GITHUB_ENV
 
-      - name: Get Changes between Tags
-        id: changes
-        uses: simbo/changes-between-tags-action@v1
-        with:
-          validate-tag: false
+      - name: Get last release tag
+        id: last_release
+        run: |
+          CURRENT_TAG="${{ github.event.release.tag_name }}"  # Tag of the current release
+          
+          # Use the GitHub API to find the most recent non-prerelease release
+          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                      "https://api.github.com/repos/${{ github.repository }}/releases" | jq -c '.[].tag_name')
+          
+          # jq parses JSON, and can efficiently find the latest non-prerelease tag
+          LAST_RELEASE_TAG=$(echo "$RESPONSE" | jq -r '. | select( . != "'"$CURRENT_TAG"'" ) | first')
+          
+          # Check if no previous release tag found (first release)
+          if [[ -z "$LAST_RELEASE_TAG" ]]; then
+          LAST_RELEASE_TAG=$(git rev-list --max-parents=0 HEAD) # Get the initial commit
+          echo "No previous release found. Using initial commit: $LAST_RELEASE_TAG"
+          fi
+          
+          echo "Current Tag: $CURRENT_TAG"
+          echo "Last Release Tag: $LAST_RELEASE_TAG"
+          echo "current_tag=$CURRENT_TAG" >> "$GITHUB_OUTPUT"
+          echo "last_release_tag=$LAST_RELEASE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Get commit messages
+        id: commit_messages
+        run: |
+          LAST_RELEASE_TAG="${{ steps.last_release.outputs.last_release_tag }}"
+          CURRENT_TAG="${{ steps.last_release.outputs.current_tag }}"
+          
+          COMMIT_MESSAGES=$(git log --pretty=format:"%s" "${LAST_RELEASE_TAG}..${CURRENT_TAG}")
+          echo "Commit Messages:"
+          echo "$COMMIT_MESSAGES"
+          echo "commit_messages<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$COMMIT_MESSAGES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Get tag name
         id: tagName
@@ -78,13 +108,12 @@ jobs:
 
       - name: Build Executable
         run: |
-          echo "tag: ${{ steps.changes.outputs.tag }}"
-          echo "changes: ${{ steps.changes.outputs.changes }}"
+          echo "changes: ${{ steps.commit_messages.outputs.commit_messages }}
           
           python -m ok.update.package_launcher ${{ steps.tagName.outputs.tag }} deploy.txt
-          Copy-Item -Path "dist" -Destination "ok-ls" -Recurse
-          7z a -t7z -r "ok-ls-full-${{ steps.tagName.outputs.tag }}.7z" "ok-ls"     
-          Remove-Item -Path "ok-ls" -Recurse -Force
+          Copy-Item -Path "dist" -Destination "ok-gf2" -Recurse
+          7z a -t7z -r "ok-gf2-${{ steps.tagName.outputs.tag }}.7z" "ok-gf2"     
+          Remove-Item -Path "ok-gf2" -Recurse -Force
 
         shell: pwsh
 
@@ -93,12 +122,12 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           body: |
-            ok-ls-CPU-full (AMD or other GPUs)
+            ok-gf2
             Updates：
-            ${{ steps.changes.outputs.changes }}
+            ${{ steps.commit_messages.outputs.commit_messages }}
           files: |
-            ok-ls-full-${{ steps.tagName.outputs.tag }}.7z
+            ok-gf2-${{ steps.tagName.outputs.tag }}.7z
 
       - name: push to coding
         run: |
-          python -m ok.update.push_repos --repos https://${{ secrets.CODING_USERNAME }}:${{ secrets.CODING_PASSWORD }}@e.coding.net/g-frfh1513/ok-wuthering-waves/ok-ls.git --files deploy.txt --tag ${{ steps.tagName.outputs.tag }}
+          python -m ok.update.push_repos --repos https://${{ secrets.CODING_USERNAME }}:${{ secrets.CODING_PASSWORD }}@e.coding.net/g-frfh1513/ok-wuthering-waves/ok-gf2.git --files deploy.txt --tag ${{ steps.tagName.outputs.tag }}

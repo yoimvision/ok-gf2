@@ -1,8 +1,7 @@
 import re
-import time
 
-from ok import Logger
-from src.tasks.BaseLsTask import BaseGfTask
+from ok import Logger, find_boxes_by_name, find_boxes_within_boundary
+from src.tasks.BaseGfTask import BaseGfTask
 
 logger = Logger.get_logger(__name__)
 
@@ -14,84 +13,59 @@ class DailyTask(BaseGfTask):
         self.name = "一键日常"
         self.description = "收菜"
         self.default_config.update({
-            '吃料理': False,
-            '刷鸡': True,
-            '免费召唤': True,
-            '收菜': True,
-            '公会': True,
-            '经验金币本': True,
-            '单人突袭': True,
-            '组队突袭': True,
-            '巨石阵召唤一次': True,
-            '免费礼包': True,
-            '活动挂机5分钟': True,
-            '聊天': True,
-            '领邮件': True,
-            '商店购物': True,
-            '买料理': True,
-            '买礼物': True,
-            '活动领奖': True,
-            '领任务': True,
+            '公共区': True,
+            '购买免费礼包': True,
+            '自动刷体力': True,
             '竞技场': True,
+            '兵棋推演': True,
+            '班组': True,
+            '尘烟': True,
+            '领任务': True,
+            '大月卡': True,
         })
 
-        self.config_description = {
-            '领体力': "不满四个Buff则吃4个每样1个",
-            '刷鸡': "村庄刷鸡肉, 要小技能可以打死鸡的角色, 如鲁亚, 蓝恩, 男主",
-            '收菜': "快速探查和收菜",
-            '公会': "公会奖励和投资",
-            '经验金币本': "只刷日常的, 不会用票",
-            '单人突袭': "打一次, 然后扫荡两次, 只刷日常的, 不会用票",
-            '组队突袭': "只刷日常的, 不会用票",
-            '巨石阵召唤一次': "做日常任务",
-            '聊天': "好感度, 从上到下聊六次",
-            '活动领奖': "兔女郎抽奖",
-            '领任务': "领取日常,周常,史诗任务奖励",
-            '竞技场': "只刷下防的近战, 直到票刷完",
-        }
-
     def run(self):
+        # return self.choose_chenyan()
         self.ensure_main(recheck_time=2, time_out=90)
-        # self.gongongqu()
-        # self.shopping()
-        self.battle()
-        # if self.config.get('刷鸡'):
-        #     self.farm_chicken()
-        # if self.config.get('经验金币本'):
-        #     self.exp_and_gold()
-        # if self.config.get('免费召唤'):
-        #     self.free_summon()
-        # if self.config.get('公会'):
-        #     self.guild()
-        # if self.config.get('收菜'):
-        #     self.collect()
-        # if self.config.get('吃料理'):
-        #     self.eat()
-        # if self.config.get('单人突袭'):
-        #     self.farm_dragon()
-        # if self.config.get('组队突袭'):
-        #     self.farm_dragon_team()
-        # if self.config.get('巨石阵召唤一次'):
-        #     self.use_stone_henge()
-        # if self.config.get('活动挂机5分钟'):
-        #     self.farm_activity()
-        # if self.config.get('聊天'):
-        #     self.chat()
-        # if self.config.get('领邮件'):
-        #     self.claim_mail()
-        # if self.config.get('商店购物'):
-        #     self.shop()
-        # if self.config.get('活动领奖'):
-        #     self.claim_activity()
-        # if self.config.get('领任务'):
-        #     self.claim_quest()
-        # if self.config.get('竞技场'):
-        #     self.do_arena()
-        #     self.ensure_main()
-        # self.log_info('一键日常完成', notify=True, tray=True)
+        if self.config.get('公共区'):
+            self.gongongqu()
+        if self.config.get('购买免费礼包'):
+            self.shopping()
+        if self.config.get('自动刷体力'):
+            self.battle()
+        if self.config.get('竞技场'):
+            self.arena()
+        if self.config.get('兵棋推演'):
+            self.bingqi()
+        if self.config.get('班组'):
+            self.guild()
+
+        if self.config.get('领任务'):
+            self.claim_quest()
+        if self.config.get('大月卡'):
+            self.xunlu()
+
+    def claim_quest(self):
+        self.info_set('current_task', 'claim_quest')
+        self.wait_click_ocr(match=['委托'], box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
+        self.wait_click_ocr(match=['一键领取'], box='bottom_right', time_out=4,
+                            raise_if_not_found=False, after_sleep=1)
+        if self.wait_click_ocr(match=['领取全部', '无可领取报酬'], box='bottom_left', time_out=3, after_sleep=0.5):
+            self.wait_pop_up()
+        self.ensure_main()
+
+    def xunlu(self):
+        self.info_set('current_task', 'xunlu')
+        self.wait_click_ocr(match=['巡录'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
+        self.wait_click_ocr(match=['沿途行动'], box='top_right', time_out=4,
+                            raise_if_not_found=True, after_sleep=1)
+        self.wait_click_ocr(match=['一键领取'], box='bottom_right', time_out=4,
+                            raise_if_not_found=True, after_sleep=1)
+
+        self.ensure_main()
 
     def gongongqu(self):
-        self.log_info('public area')
+        self.info_set('current_task', 'public area')
         self.wait_click_ocr(match=['公共区'], box='right', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['调度室'], box='left', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['调度收益'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
@@ -107,24 +81,217 @@ class DailyTask(BaseGfTask):
         self.ensure_main()
 
     def shopping(self):
-        self.log_info('shopping')
+        self.info_set('current_task', 'shopping')
         self.wait_click_ocr(match=['商城'], box='right', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['品质甄选'], box='left', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['常驻礼包'], box='right', after_sleep=0.5, raise_if_not_found=True)
-        if self.wait_click_ocr(match=['免费'], box='left', after_sleep=0.5, raise_if_not_found=False, time_out=5):
+        if self.wait_click_ocr(match=['免费'], box='left', after_sleep=0.5, raise_if_not_found=False, time_out=4):
             self.log_info('found free item to buy')
             self.wait_click_ocr(match=['确认'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
             self.wait_click_ocr(match=['点击空白处关闭'], box='bottom', after_sleep=0.5, raise_if_not_found=False)
         self.ensure_main()
 
+    def arena(self):
+        self.info_set('current_task', 'arena')
+        self.wait_click_ocr(match=['战役推进'], box='right', after_sleep=0.5, raise_if_not_found=True)
+        self.wait_click_ocr(match=['模拟作战'], box='top_right', after_sleep=0.5, raise_if_not_found=True)
+        self.wait_click_ocr(match=['实兵演习'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
+        self.wait_click_ocr_with_pop_up("进攻", box='bottom_right')
+        count = self.challenge_arena_opponent()
+        self.back()
+        self.sleep(1)
+        if count > 0:
+            self.click_relative(0.34, 0.89, after_sleep=0.5)
+            if not self.wait_ocr(match=['演习补给'], box='top', time_out=4):
+                self.wait_pop_up(time_out=4)
+        self.ensure_main()
+
+    def bingqi(self):
+        self.info_set('current_task', 'bingqi')
+        self.wait_click_ocr(match=['战役推进'], box='right', after_sleep=0.5, raise_if_not_found=True)
+        self.wait_click_ocr(match=['模拟作战'], box='top_right', after_sleep=0.5, raise_if_not_found=True)
+        self.swipe_relative(0.8, 0.6, 0.5, 0.6, duration=1)
+        self.sleep(0.5)
+        self.wait_click_ocr(match=['兵棋推演'], box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
+        self.wait_ocr(match='防御阵容', box='right', time_out=30, post_action=lambda: self.click_relative(0.5, 0.5))
+        while self.find_top_right_count():
+            self.info_incr('bingqi')
+            self.wait_click_ocr(match=['匹配'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
+            self.auto_battle()
+            self.wait_ocr(match=['匹配'], box='bottom', raise_if_not_found=True, time_out=30)
+        self.ensure_main()
+
+    def guild(self):
+        self.info_set('current_task', 'guild')
+        self.wait_click_ocr(match=['班组'], box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
+        self.wait_click_ocr(match=['要务'], box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
+        result = self.wait_ocr(match=['开始作战', '每日要务已完成'], box='bottom_right',
+                               raise_if_not_found=True, log=True)
+        if result[0].name == '开始作战':
+            self.click(result)
+            self.auto_battle()
+            self.wait_ocr(match=['开始作战', '每日要务已完成'], box='bottom_right', raise_if_not_found=True)
+        else:
+            self.log_info('每日要务已完成')
+        self.back()
+        self.sleep(1)
+        self.chenyan()
+
+        self.wait_click_ocr(match=['补给'], box='bottom_right', after_sleep=0.5)
+        if result := self.wait_ocr(match=['领取全部'], box='bottom_right', time_out=4,
+                                   raise_if_not_found=False):
+            self.click_box(result)
+            self.wait_pop_up()
+        self.back()
+        self.sleep(1)
+        self.ensure_main()
+
+    def chenyan(self):
+        if not self.config.get('尘烟'):
+            return
+        end = self.ocr(match=re.compile('后结束'), box='bottom_right')
+        if end:
+            self.click(end, after_sleep=1)
+        result = self.ocr(0.89, 0.01, 0.99, 0.1, match=re.compile(r"^\d+/\d+$"), box='top_right')
+        if not result:
+            raise Exception('找不到尘烟票')
+        while True:
+            tickets = int(result[0].name.split('/')[0])
+            self.info_set('chenyan tickets', tickets)
+            if tickets == 0:
+                break
+            self.wait_click_ocr(match='攻坚战', box='top_right', after_sleep=0.5, raise_if_not_found=True)
+            self.wait_click_ocr(match='开始作战', box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
+            self.choose_chenyan()
+        self.back(after_sleep=2)
+
+    def choose_chenyan(self):
+        existing = self.ocr(box='bottom_right', match=re.compile(r"^\d+$"))
+        if len(existing) < 4:
+            for exist in existing:
+                self.click_box(exist, after_sleep=0.1)
+            chars = self.ocr(box='bottom_left', match=re.compile(r"^\d+$"))
+            chars = sorted(chars, key=lambda obj: int(obj.name), reverse=True)
+            for i in range(4):
+                self.click_box(chars[i], after_sleep=0.01)
+        self.wait_click_ocr(match='助战', box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
+        self.wait_click_ocr(match='火力', box='top_right', after_sleep=2, raise_if_not_found=True)
+        priority = ['可露凯', '玛绮朵', '琼玖', '托洛洛']
+        chars = self.ocr(0.18, 0.27, 0.82, 0.79, match=re.compile(r'^\D*$'))
+        sorted_chars = sort_characters_by_priority(chars, priority)
+        for char in sorted_chars:
+            self.click(char, after_sleep=1)
+            join = self.ocr(match='入队', box='bottom_right')
+            if join:
+                self.click_box(join, after_sleep=1)
+                break
+        self.wait_click_ocr(match='确定', box='bottom_right')
+        self.auto_battle('开始作战', 'bottom_right')
+
+    def wait_click_ocr_with_pop_up(self, match, box=None):
+        if self.wait_until(lambda: self.do_wait_pop_up(match, box), time_out=10, raise_if_not_found=True):
+            self.sleep(0.5)
+            return True
+
+    def do_wait_pop_up(self, match, box):
+        boxes = self.ocr()
+        if pop_up := find_boxes_by_name(boxes, '点击空白处关闭'):
+            self.click(pop_up)
+            return False
+        elif click := find_boxes_by_name(boxes, match):
+            if click := find_boxes_within_boundary(click, self.get_box_by_name(box)):
+                self.click(click)
+                return True
+
+    def challenge_arena_opponent(self):
+        challenged = 0
+        waited_pop_up = False
+        while True:
+            remaining_count = int(self.ocr(0.89, 0.01, 0.99, 0.1)[0].name.split('/')[0])
+            if remaining_count <= 1:
+                self.log_info(f'challenge arena complete {remaining_count}')
+                break
+            boxes = self.ocr(0, 0.55, 0.94, 0.62, match=re.compile(r"^[1-9]\d*$"))
+            if len(boxes) != 5:
+                if not waited_pop_up:
+                    waited_pop_up = True
+                    self.wait_pop_up(time_out=15) and self.wait_pop_up(time_out=15) and self.wait_pop_up(time_out=15)
+                    continue
+                else:
+                    raise Exception("找不到五个演习对手")
+            self.log_info(f'arena opponents {boxes}')
+            for box in boxes:
+                if int(box.name) < 5000:
+                    search_success = box.copy()
+                    search_success.width = self.width_of_screen(0.17)
+                    search_success.height = self.height_of_screen(0.15)
+                    search_success.y -= search_success.height
+                    if not self.ocr(match=re.compile('挑战'), box=search_success, log=True):
+                        self.log_info(f'challenge opponent {box.name}')
+                        self.click(box)
+                        self.wait_click_ocr(match=['进攻'], box='bottom_right', after_sleep=0.5,
+                                            raise_if_not_found=True)
+                        self.auto_battle()
+                        self.wait_ocr(match='刷新', box='bottom_right', raise_if_not_found=True,
+                                      time_out=30)
+                        challenged += 1
+                        continue
+            if self.ocr(match=['刷新消耗'], box='bottom_right'):
+                self.log_info(f'no refresh count remains')
+                return challenged
+            self.wait_click_ocr(match='刷新', box='bottom_right', after_sleep=2, raise_if_not_found=True)
+        return challenged
+
     def battle(self):
-        self.log_info('battle')
+        self.info_set('current_task', 'battle')
         self.wait_click_ocr(match=['战役推进'], box='right', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['补给作战'], box='top', after_sleep=0.5, raise_if_not_found=True)
         self.swipe_relative(0.8, 0.6, 0.5, 0.6, duration=1)
         self.sleep(1)
         self.wait_click_ocr(match=['标准同调'], box='right', after_sleep=0.5, raise_if_not_found=True)
-        self.wait_click_ocr(match=['自律'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
+        remaining = self.fast_combat()
+        self.back()
+        if remaining >= 10:
+            self.wait_click_ocr(match=['军备解析'], box='left', after_sleep=0.5, raise_if_not_found=True,
+                                post_action=lambda: self.back(after_sleep=2))
+            while remaining >= 10:
+                remaining = self.fast_combat()
         self.ensure_main()
 
 
+def sort_characters_by_priority(chars, priority):
+    """
+    Sorts a list of character objects based on their 'charname' attribute,
+    according to a priority list.
+
+    Characters whose 'charname' attribute appears in the priority list are
+    placed at the front, sorted by their order within the priority list.
+    Characters not in the priority list retain their original order.
+
+    Args:
+        chars: A list of character objects, where each object has a 'charname' attribute (string).
+        priority: A list of character names (strings) representing the priority order.
+
+    Returns:
+        A new list of character objects, sorted according to the priority.  The
+        original `chars` list is not modified.
+    """
+
+    priority_map = {name: index for index, name in enumerate(priority)}
+
+    def sort_key(char):
+        """
+        Helper function to determine the sort key for each character object.
+        Returns a tuple: (priority_index, original_index)
+        - priority_index: The index of the character's name in the priority list, or len(priority) if not found.
+                          Characters in the priority list will have smaller priority_index values.
+        - original_index: The original index of the character object in the `chars` list. This preserves the original order
+                          for characters with the same priority.
+        """
+        charname = char.name
+        if charname in priority_map:
+            return (priority_map[charname], chars.index(char))
+        else:
+            return (len(priority), chars.index(char))  # Assign lowest priority and keep original order
+
+    return sorted(chars, key=sort_key)

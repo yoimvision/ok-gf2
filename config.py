@@ -1,5 +1,3 @@
-import os
-
 version = "v5.0.11"
 
 config = {
@@ -24,7 +22,7 @@ config = {
         'bit_blt_render_full': True,
         'check_hdr': False,
         'force_no_hdr': False,
-        'check_night_light': True,
+        # 'check_night_light': True,
         'force_no_night_light': False,
         'require_bg': True
     },
@@ -37,7 +35,7 @@ config = {
     #     'default_threshold': 0.78,
     # },
     'adb': {
-        'packages': ['com.haoplay.game.and.exilium']
+        'packages': ['com.Sunborn.SnqxExilium', 'com.haoplay.game.and.exilium']
     },
     'window_size': {
         'width': 1200,

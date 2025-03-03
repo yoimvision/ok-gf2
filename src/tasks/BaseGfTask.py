@@ -1,8 +1,6 @@
 import re
-import sys
-import time
 
-from ok import BaseTask
+from ok import BaseTask, find_boxes_within_boundary, find_boxes_by_name
 from ok import Logger
 
 logger = Logger.get_logger(__name__)
@@ -18,11 +16,40 @@ class BaseGfTask(BaseTask):
         #     sys.exit(1)
 
     def ensure_main(self, recheck_time=1, time_out=30, esc=True):
+        self.info_set('current_task', 'go_to_main')
         if not self.wait_until(lambda: self.is_main(recheck_time=recheck_time, esc=esc), time_out=time_out):
             raise Exception("请从游戏主页进入")
 
+    def auto_battle(self, end_match=None, end_box=None):
+        self.info_set('current_task', 'auto battle')
+        result = self.wait_ocr(match=['作战开始', '行动结束'], box='bottom', time_out=60,
+                               raise_if_not_found=True)
+        if result[0].name == '作战开始':
+            self.click_box(result, after_sleep=1)
+            start_result = self.wait_ocr(match=['行动结束', re.compile('还有可部署')],
+                                         raise_if_not_found=True, time_out=30)
+            if '还有可部署' in start_result[0].name:
+                self.log_error('阵容没上满, 请上阵后再点击继续任务, 不支持选择助战!', notify=True)
+                self.pause()
+                self.wait_click_ocr(match=['作战开始'], box='bottom', time_out=5,
+                                    raise_if_not_found=True)
+                self.wait_ocr(match=['行动结束'],
+                              raise_if_not_found=True, time_out=30)
+            self.sleep(0.5)
+        self.click_relative(0.85, 0.05, after_sleep=1)
+        result = self.wait_ocr(match=['任务完成', '任务失败', '战斗失败'], raise_if_not_found=True, time_out=600)
+        if result[0].name == '任务失败':
+            raise Exception('任务失败, 没打过!')
+        else:
+            self.click(result[0])
+        if result[0].name != '战斗失败':
+            self.wait_click_ocr(match='确认', box='bottom_right', raise_if_not_found=True, time_out=5)
+        if end_match and end_box:
+            self.wait_ocr(match=end_match, box=end_box, raise_if_not_found=True, time_out=30)
+        self.sleep(0.5)
+
     def is_main(self, recheck_time=0, esc=True):
-        boxes = self.ocr(match=['整备室','公共区','招募'], box='right')
+        boxes = self.ocr(match=['整备室', '公共区', '招募'], box='right')
         if len(boxes) == 3:
             if recheck_time:
                 self.sleep(recheck_time)
@@ -30,7 +57,7 @@ class BaseGfTask(BaseTask):
             else:
                 return True
         # if not self.do_handle_alert()[0]:
-        if box:=self.ocr(box="bottom", match=["点击开始", "点击空白处关闭"],
+        if box := self.ocr(box="bottom", match=["点击开始", "点击空白处关闭"],
                            log=True):
             self.click(box)
             return False
@@ -40,3 +67,45 @@ class BaseGfTask(BaseTask):
             # self.do_handle_alert()
         self.next_frame()
 
+    def find_top_right_count(self):
+        result = self.ocr(0.89, 0.01, 0.99, 0.1, match=re.compile(r"^\d+/\d+$"), box='top_right')
+        if not result:
+            raise Exception('找不到当前体力或票')
+        return int(result[0].name.split('/')[0])
+
+    def fast_combat(self):
+        self.wait_click_ocr(match=['自律'], box='bottom_right', after_sleep=1, raise_if_not_found=True)
+        boxes = self.ocr()
+        current = find_boxes_within_boundary(boxes, self.box_of_screen(0.84, 0, 0.99, 0.10))[0].name
+        current = int(current.split('/')[0])
+        if len(find_boxes_by_name(boxes, ["确认", "取消"])) != 2:
+            self.log_info("自律没有弹窗, 可能是调度权限不足")
+            return current
+
+        cost = int(find_boxes_within_boundary(boxes, self.box_of_screen(0.48, 0.56, 0.57, 0.67))[0].name)
+        battle_max = int(find_boxes_within_boundary(boxes, self.box_of_screen(0.61, 0.50, 0.66, 0.57))[0].name)
+
+        self.info_set('current_stamina', current)
+        self.info_set('battle_cost', cost)
+        self.info_set('battle_max', battle_max)
+        can_fast_count = min(int(current / cost), battle_max)
+        self.info_set('can_fast_count', can_fast_count)
+        self.info_set('click_battle_plus', 0)
+        remaining = current - can_fast_count * cost
+        self.info_set('remaining_stamina', remaining)
+        for _ in range(can_fast_count - 1):
+            self.click(0.68, 0.54)
+            self.info_incr('click_battle_plus')
+            self.sleep(0.2)
+        if can_fast_count > 0:
+            self.click(find_boxes_by_name(boxes, "确认"))
+            self.wait_pop_up()
+        else:
+            self.click(find_boxes_by_name(boxes, "取消"))
+        return remaining
+
+    def wait_pop_up(self, time_out=15):
+        return self.wait_click_ocr(match=['点击空白处关闭', '点击屏幕任意位置继续'], box='bottom', time_out=time_out,
+                                   after_sleep=2,
+                                   recheck_time=1,
+                                   raise_if_not_found=False)
