@@ -273,15 +273,15 @@ class DailyTask(BaseGfTask):
 
 def sort_characters_by_priority(chars, priority):
     """
-    Sorts a list of character objects based on their 'charname' attribute,
+    Sorts a list of character objects based on their 'char_name' attribute,
     according to a priority list.
 
-    Characters whose 'charname' attribute appears in the priority list are
+    Characters whose 'char_name' attribute appears in the priority list are
     placed at the front, sorted by their order within the priority list.
     Characters not in the priority list retain their original order.
 
     Args:
-        chars: A list of character objects, where each object has a 'charname' attribute (string).
+        chars: A list of character objects, where each object has a 'char_name' attribute (string).
         priority: A list of character names (strings) representing the priority order.
 
     Returns:
@@ -290,20 +290,15 @@ def sort_characters_by_priority(chars, priority):
     """
 
     priority_map = {name: index for index, name in enumerate(priority)}
+    sorted_chars = []
 
-    def sort_key(char):
-        """
-        Helper function to determine the sort key for each character object.
-        Returns a tuple: (priority_index, original_index)
-        - priority_index: The index of the character's name in the priority list, or len(priority) if not found.
-                          Characters in the priority list will have smaller priority_index values.
-        - original_index: The original index of the character object in the `chars` list. This preserves the original order
-                          for characters with the same priority.
-        """
-        charname = char.name
-        if charname in priority_map:
-            return (priority_map[charname], chars.index(char))
+    for i, the_char in enumerate(chars):  # Use enumerate to get the original index
+        char_name = the_char.name
+        if char_name in priority_map:
+            sorted_chars.append((priority_map[char_name], i, the_char))  # (priority_index, original_index, char_object)
         else:
-            return (len(priority), chars.index(char))  # Assign lowest priority and keep original order
+            sorted_chars.append((len(priority), i, the_char))  # (lowest_priority, original_index, char_object)
 
-    return sorted(chars, key=sort_key)
+    sorted_chars.sort()  # Sort the list of tuples
+
+    return [char_object for _, _, char_object in sorted_chars]  # Extract the character objects
