@@ -45,7 +45,7 @@ jobs:
         shell: pwsh
         run: |
           $CURRENT_TAG = "${{ github.event.release.tag_name }}" # Current release tag
-          Write-Host "Current Tag: $CURRENT_TAG"
+          echo "Current Tag: $CURRENT_TAG"
           
           # Get all releases from GitHub API
           $releases = Invoke-RestMethod -Headers @{Authorization = "token ${{ secrets.GITHUB_TOKEN }}"} `
@@ -56,30 +56,30 @@ jobs:
           
           # Handle case where no previous releases
           if (-not $LAST_RELEASE_TAG) {
-            Write-Host "No previous release found, defaulting to initial commit"
+            echo "No previous release found, defaulting to initial commit"
             $LAST_RELEASE_TAG = git rev-list --max-parents=0 HEAD
-            Write-Host "Initial Commit: $LAST_RELEASE_TAG"          
+            echo "Initial Commit: $LAST_RELEASE_TAG"          
           }
           
-          Write-Host "Last Release Tag: $LAST_RELEASE_TAG"
+          echo "Last Release Tag: $LAST_RELEASE_TAG"
           
-          Write-Host "current_tag=$CURRENT_TAG" >> $env:GITHUB_OUTPUT
-          Write-Host "last_release_tag=$LAST_RELEASE_TAG" >> $env:GITHUB_OUTPUT
+          echo "current_tag=$CURRENT_TAG"
+          echo "$LAST_RELEASE_TAG=$LAST_RELEASE_TAG"
 
       - name: Get commit messages
-        id: commit_messages
+        id: COMMIT_MESSAGES
         shell: pwsh
         run: |
-          $LAST_RELEASE_TAG = "${{ steps.last_release.outputs.last_release_tag }}"
+          $LAST_RELEASE_TAG = "${{ steps.last_release.outputs.$LAST_RELEASE_TAG }}"
           $CURRENT_TAG = "${{ steps.last_release.outputs.current_tag }}"
-          Write-Host "Last Release Tag: $LAST_RELEASE_TAG"
-          Write-Host "Current Tag: $CURRENT_TAG"
+          echo "Last Release Tag: $LAST_RELEASE_TAG"
+          echo "Current Tag: $CURRENT_TAG"
           $COMMIT_MESSAGES = git log --pretty=format:"%s" "$LAST_RELEASE_TAG..$CURRENT_TAG"
-          Write-Host "Commit Messages:"
-          Write-Host $COMMIT_MESSAGES
-          Write-Host "commit_messages<<EOF" >> $env:GITHUB_OUTPUT
-          Write-Host $COMMIT_MESSAGES >> $env:GITHUB_OUTPUT
-          Write-Host "EOF" >> $env:GITHUB_OUTPUT
+          echo "Commit Messages:"
+          echo $COMMIT_MESSAGES
+          echo "COMMIT_MESSAGES<<EOF"
+          echo $COMMIT_MESSAGES
+          echo "EOF"
 
       - name: Get tag name
         id: tagName
@@ -107,13 +107,13 @@ jobs:
       - name: Run tests
         run: |
           Get-ChildItem -Path ".\tests\*.py" | ForEach-Object {
-              Write-Host "Running tests in $($_.FullName)"
+              echo "Running tests in $($_.FullName)"
               python -m unittest $_.FullName
           }
 
       - name: Build Executable
         run: |
-          echo "changes: ${{ steps.commit_messages.outputs.commit_messages }}
+          echo "changes: ${{ steps.COMMIT_MESSAGES.outputs.COMMIT_MESSAGES }}
           
           python -m ok.update.package_launcher ${{ steps.tagName.outputs.tag }} deploy.txt
           Copy-Item -Path "dist" -Destination "ok-gf2" -Recurse
@@ -129,7 +129,7 @@ jobs:
           body: |
             ok-gf2
             Updates：
-            ${{ steps.commit_messages.outputs.commit_messages }}
+            ${{ steps.COMMIT_MESSAGES.outputs.COMMIT_MESSAGES }}
           files: |
             ok-gf2-${{ steps.tagName.outputs.tag }}.7z
 
