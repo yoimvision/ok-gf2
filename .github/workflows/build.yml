@@ -40,46 +40,11 @@ jobs:
           set PYTHONLEGACYWINDOWSSTDIO=utf-8
           echo PYTHONIOENCODING=utf-8 >> $GITHUB_ENV
 
-      - name: Get last release tag
-        id: last_release
-        shell: pwsh
-        run: |
-          $CURRENT_TAG = "${{ github.event.release.tag_name }}" # Current release tag
-          Write-Host "Current Tag: $CURRENT_TAG"
-          
-          # Get all releases from GitHub API
-          $releases = Invoke-RestMethod -Headers @{Authorization = "token ${{ secrets.GITHUB_TOKEN }}"} `
-                  -Uri "https://api.github.com/repos/${{ github.repository }}/releases"
-          
-          # Filter and sort to find the last release tag (excluding the current tag)
-          $LAST_RELEASE_TAG = $releases | Where-Object {$_.tag_name -ne $CURRENT_TAG} | Sort-Object published_at -Descending | Select-Object -First 1 | Select-Object -ExpandProperty tag_name
-          
-          # Handle case where no previous releases
-          if (-not $LAST_RELEASE_TAG) {
-            Write-Host "No previous release found, defaulting to initial commit"
-            $LAST_RELEASE_TAG = git rev-list --max-parents=0 HEAD
-            Write-Host "Initial Commit: $LAST_RELEASE_TAG"          
-          }
-          
-          Write-Host "Last Release Tag: $LAST_RELEASE_TAG"
-          
-          Write-Host "current_tag=$CURRENT_TAG" >> $env:GITHUB_OUTPUT
-          Write-Host "$LAST_RELEASE_TAG=$LAST_RELEASE_TAG" >> $env:GITHUB_OUTPUT
-
-      - name: Get commit messages
-        id: COMMIT_MESSAGES
-        shell: pwsh
-        run: |
-          $LAST_RELEASE_TAG = "${{ steps.last_release.outputs.LAST_RELEASE_TAG }}"
-          $CURRENT_TAG = "${{ steps.last_release.outputs.current_tag }}"
-          Write-Host "Last Release Tag: $LAST_RELEASE_TAG"
-          Write-Host "Current Tag: $CURRENT_TAG"
-          $COMMIT_MESSAGES = git log --pretty=format:"%s" "$LAST_RELEASE_TAG..$CURRENT_TAG"
-          Write-Host "Commit Messages:"
-          Write-Host $COMMIT_MESSAGES
-          Write-Host "COMMIT_MESSAGES<<EOF" >> $env:GITHUB_OUTPUT
-          Write-Host $COMMIT_MESSAGES >> $env:GITHUB_OUTPUT
-          Write-Host "EOF" >> $env:GITHUB_OUTPUT
+      - name: Generate changelog
+        id: changelog
+        uses: metcalfc/changelog-generator@v4.3.1
+        with:
+          myToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get tag name
         id: tagName
@@ -129,7 +94,7 @@ jobs:
           body: |
             ok-gf2
             Updates：
-            ${{ steps.COMMIT_MESSAGES.outputs.COMMIT_MESSAGES }}
+            ${{ steps.changelog.outputs.changelog }}
           files: |
             ok-gf2-${{ steps.tagName.outputs.tag }}.7z
 

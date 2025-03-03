@@ -22,6 +22,7 @@ class DailyTask(BaseGfTask):
             '尘烟': True,
             '领任务': True,
             '大月卡': True,
+            '邮件': True,
         })
 
     def run(self):
@@ -44,6 +45,8 @@ class DailyTask(BaseGfTask):
             self.claim_quest()
         if self.config.get('大月卡'):
             self.xunlu()
+        if self.config.get('邮件'):
+            self.mail()
 
     def claim_quest(self):
         self.info_set('current_task', 'claim_quest')
@@ -54,13 +57,20 @@ class DailyTask(BaseGfTask):
             self.wait_pop_up()
         self.ensure_main()
 
+    def mail(self):
+        self.info_set('current_task', 'mail')
+        self.click(0.07, 0.63)
+        self.wait_click_ocr(match=['领取全部'], box='bottom_left', time_out=4, after_sleep=2, raise_if_not_found=False)
+
+        self.ensure_main()
+
     def xunlu(self):
         self.info_set('current_task', 'xunlu')
         self.wait_click_ocr(match=['巡录'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['沿途行动'], box='top_right', time_out=4,
                             raise_if_not_found=True, after_sleep=1)
         self.wait_click_ocr(match=['一键领取'], box='bottom_right', time_out=4,
-                            raise_if_not_found=True, after_sleep=1)
+                            raise_if_not_found=False, after_sleep=1)
 
         self.ensure_main()
 
