@@ -40,11 +40,11 @@ jobs:
           set PYTHONLEGACYWINDOWSSTDIO=utf-8
           echo PYTHONIOENCODING=utf-8 >> $GITHUB_ENV
 
-      - name: Generate changelog
-        id: changelog
-        uses: metcalfc/changelog-generator@v4.3.1
+      - name: Get Changes between Tags
+        id: changes
+        uses: simbo/changes-between-tags-action@v1
         with:
-          myToken: ${{ secrets.GITHUB_TOKEN }}
+          validate-tag: false
 
       - name: Get tag name
         id: tagName
@@ -94,7 +94,7 @@ jobs:
           body: |
             ok-gf2
             Updates：
-            ${{ steps.changelog.outputs.changelog }}
+            ${{ steps.changes.outputs.changes }}
           files: |
             ok-gf2-${{ steps.tagName.outputs.tag }}.7z
 
