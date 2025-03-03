@@ -83,7 +83,7 @@ jobs:
           python -m ok.update.package_launcher ${{ steps.tagName.outputs.tag }} deploy.txt
           Copy-Item -Path "dist" -Destination "ok-gf2" -Recurse
           7z a -t7z -r "ok-gf2-${{ steps.tagName.outputs.tag }}.7z" "ok-gf2"     
-          Remove-Item -Path "ok-gf2" -Recurse -Force
+          Remove-Item -Path 'ok-gf2' -Recurse -Force
 
         shell: pwsh
 
