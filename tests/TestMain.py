@@ -2,9 +2,8 @@
 import unittest
 
 from config import config
-from ok import og
 from ok.test.TaskTestCase import TaskTestCase
-from src.tasks.BaseLsTask import BaseGfTask
+from src.tasks.BaseGfTask import BaseGfTask
 
 
 class TestBattleBaseSerialization(TaskTestCase):
