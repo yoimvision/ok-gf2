@@ -42,39 +42,44 @@ jobs:
 
       - name: Get last release tag
         id: last_release
+        shell: pwsh
         run: |
-          CURRENT_TAG="${{ github.event.release.tag_name }}"  # Tag of the current release
+          $CURRENT_TAG = "${{ github.event.release.tag_name }}" # Current release tag
+          Write-Host "Current Tag: $CURRENT_TAG"
           
-          # Use the GitHub API to find the most recent non-prerelease release
-          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                      "https://api.github.com/repos/${{ github.repository }}/releases" | jq -c '.[].tag_name')
+          # Get all releases from GitHub API
+          $releases = Invoke-RestMethod -Headers @{Authorization = "token ${{ secrets.GITHUB_TOKEN }}"} `
+                  -Uri "https://api.github.com/repos/${{ github.repository }}/releases"
           
-          # jq parses JSON, and can efficiently find the latest non-prerelease tag
-          LAST_RELEASE_TAG=$(echo "$RESPONSE" | jq -r '. | select( . != "'"$CURRENT_TAG"'" ) | first')
+          # Filter and sort to find the last release tag (excluding the current tag)
+          $LAST_RELEASE_TAG = $releases | Where-Object {$_.tag_name -ne $CURRENT_TAG} | Sort-Object published_at -Descending | Select-Object -First 1 | Select-Object -ExpandProperty tag_name
           
-          # Check if no previous release tag found (first release)
-          if [[ -z "$LAST_RELEASE_TAG" ]]; then
-          LAST_RELEASE_TAG=$(git rev-list --max-parents=0 HEAD) # Get the initial commit
-          echo "No previous release found. Using initial commit: $LAST_RELEASE_TAG"
-          fi
+          # Handle case where no previous releases
+          if (-not $LAST_RELEASE_TAG) {
+            Write-Host "No previous release found, defaulting to initial commit"
+            $LAST_RELEASE_TAG = git rev-list --max-parents=0 HEAD
+            Write-Host "Initial Commit: $LAST_RELEASE_TAG"          
+          }
           
-          echo "Current Tag: $CURRENT_TAG"
-          echo "Last Release Tag: $LAST_RELEASE_TAG"
-          echo "current_tag=$CURRENT_TAG" >> "$GITHUB_OUTPUT"
-          echo "last_release_tag=$LAST_RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          Write-Host "Last Release Tag: $LAST_RELEASE_TAG"
+          
+          Write-Host "current_tag=$CURRENT_TAG" >> $env:GITHUB_OUTPUT
+          Write-Host "last_release_tag=$LAST_RELEASE_TAG" >> $env:GITHUB_OUTPUT
 
       - name: Get commit messages
         id: commit_messages
+        shell: pwsh
         run: |
-          LAST_RELEASE_TAG="${{ steps.last_release.outputs.last_release_tag }}"
-          CURRENT_TAG="${{ steps.last_release.outputs.current_tag }}"
-          
-          COMMIT_MESSAGES=$(git log --pretty=format:"%s" "${LAST_RELEASE_TAG}..${CURRENT_TAG}")
-          echo "Commit Messages:"
-          echo "$COMMIT_MESSAGES"
-          echo "commit_messages<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$COMMIT_MESSAGES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          $LAST_RELEASE_TAG = "${{ steps.last_release.outputs.last_release_tag }}"
+          $CURRENT_TAG = "${{ steps.last_release.outputs.current_tag }}"
+          Write-Host "Last Release Tag: $LAST_RELEASE_TAG"
+          Write-Host "Current Tag: $CURRENT_TAG"
+          $COMMIT_MESSAGES = git log --pretty=format:"%s" "$LAST_RELEASE_TAG..$CURRENT_TAG"
+          Write-Host "Commit Messages:"
+          Write-Host $COMMIT_MESSAGES
+          Write-Host "commit_messages<<EOF" >> $env:GITHUB_OUTPUT
+          Write-Host $COMMIT_MESSAGES >> $env:GITHUB_OUTPUT
+          Write-Host "EOF" >> $env:GITHUB_OUTPUT
 
       - name: Get tag name
         id: tagName
