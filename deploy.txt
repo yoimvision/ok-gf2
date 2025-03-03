@@ -2,9 +2,8 @@ src
 ok
 config.py
 main.py
-ok-ls.exe
+ok-gf2.exe
 main.py
-assets
 icon.png
 requirements.txt
 README.md

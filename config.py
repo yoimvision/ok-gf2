@@ -51,17 +51,17 @@ config = {
     'git_update': {'sources': [
         {
             'name': '阿里云',
-            'git_url': 'https://e.coding.net/g-frfh1513/ok-wuthering-waves/ok-ls.git',
+            'git_url': 'https://e.coding.net/g-frfh1513/ok-wuthering-waves/ok-gf2.git',
             'pip_url': 'https://mirrors.aliyun.com/pypi/simple'
         },
         {
             'name': '清华大学',
-            'git_url': 'https://e.coding.net/g-frfh1513/ok-wuthering-waves/ok-ls.git',
+            'git_url': 'https://e.coding.net/g-frfh1513/ok-wuthering-waves/ok-gf2.git',
             'pip_url': 'https://pypi.tuna.tsinghua.edu.cn/simple'
         },
         {
             'name': '腾讯云',
-            'git_url': 'https://e.coding.net/g-frfh1513/ok-wuthering-waves/ok-ls.git',
+            'git_url': 'https://e.coding.net/g-frfh1513/ok-wuthering-waves/ok-gf2.git',
             'pip_url': 'https://mirrors.cloud.tencent.com/pypi/simple'
         },
     ]},
