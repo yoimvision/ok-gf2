@@ -157,12 +157,14 @@ class DailyTask(BaseGfTask):
             raise Exception('找不到尘烟票')
         while True:
             tickets = int(result[0].name.split('/')[0])
+            self.log_info(f'chenyan tickets {tickets}')
             self.info_set('chenyan tickets', tickets)
             if tickets == 0:
                 break
             self.wait_click_ocr(match='攻坚战', box='top_right', after_sleep=0.5, raise_if_not_found=True)
             self.wait_click_ocr(match='开始作战', box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
             self.choose_chenyan()
+            self.sleep(2)
         self.back(after_sleep=2)
 
     def choose_chenyan(self):
