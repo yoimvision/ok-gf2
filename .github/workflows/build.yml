@@ -70,7 +70,7 @@ jobs:
         id: COMMIT_MESSAGES
         shell: pwsh
         run: |
-          $LAST_RELEASE_TAG = "${{ steps.last_release.outputs.$LAST_RELEASE_TAG }}"
+          $LAST_RELEASE_TAG = "${{ steps.last_release.outputs.LAST_RELEASE_TAG }}"
           $CURRENT_TAG = "${{ steps.last_release.outputs.current_tag }}"
           Write-Host "Last Release Tag: $LAST_RELEASE_TAG"
           Write-Host "Current Tag: $CURRENT_TAG"
