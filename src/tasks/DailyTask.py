@@ -1,7 +1,7 @@
 import re
 
 from ok import Logger, find_boxes_by_name, find_boxes_within_boundary
-from src.tasks.BaseGfTask import BaseGfTask
+from src.tasks.BaseGfTask import BaseGfTask, pop_ups
 
 logger = Logger.get_logger(__name__)
 
@@ -40,13 +40,13 @@ class DailyTask(BaseGfTask):
             self.bingqi()
         if self.config.get('班组'):
             self.guild()
-
         if self.config.get('领任务'):
             self.claim_quest()
         if self.config.get('大月卡'):
             self.xunlu()
         if self.config.get('邮件'):
             self.mail()
+        self.log_info('少前2日常完成!')
 
     def claim_quest(self):
         self.info_set('current_task', 'claim_quest')
@@ -82,7 +82,7 @@ class DailyTask(BaseGfTask):
         self.wait_click_ocr(match=['取出'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['资源生产'], box='left', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['收取'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
-        self.wait_click_ocr(match=['点击空白处关闭'], box='bottom', after_sleep=0.5, raise_if_not_found=False)
+        self.wait_click_ocr(match=pop_ups, box='bottom', after_sleep=0.5, raise_if_not_found=False)
         self.back()
         self.sleep(1)
         if self.wait_click_ocr(match=['一键领取'], box='bottom', after_sleep=1, time_out=5):
@@ -98,7 +98,7 @@ class DailyTask(BaseGfTask):
         if self.wait_click_ocr(match=['免费'], box='left', after_sleep=0.5, raise_if_not_found=False, time_out=4):
             self.log_info('found free item to buy')
             self.wait_click_ocr(match=['确认'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
-            self.wait_click_ocr(match=['点击空白处关闭'], box='bottom', after_sleep=0.5, raise_if_not_found=False)
+            self.wait_click_ocr(match=pop_ups, box='bottom', after_sleep=0.5, raise_if_not_found=False)
         self.ensure_main()
 
     def arena(self):
@@ -176,6 +176,7 @@ class DailyTask(BaseGfTask):
             self.wait_click_ocr(match='开始作战', box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
             self.choose_chenyan()
             self.sleep(2)
+            result = self.ocr(0.89, 0.01, 0.99, 0.1, match=re.compile(r"^\d+/\d+$"), box='top_right')
         self.back(after_sleep=2)
 
     def choose_chenyan(self):
@@ -202,19 +203,37 @@ class DailyTask(BaseGfTask):
         self.auto_battle('开始作战', 'bottom_right')
 
     def wait_click_ocr_with_pop_up(self, match, box=None):
-        if self.wait_until(lambda: self.do_wait_pop_up(match, box), time_out=10, raise_if_not_found=True):
+        if self.wait_until(lambda: self.do_wait_pop_up_and_click(match, box), time_out=10, raise_if_not_found=True):
             self.sleep(0.5)
             return True
 
-    def do_wait_pop_up(self, match, box):
+    def do_wait_pop_up_and_click(self, match, box):
         boxes = self.ocr()
-        if pop_up := find_boxes_by_name(boxes, '点击空白处关闭'):
+        if pop_up := find_boxes_by_name(boxes, pop_ups):
             self.click(pop_up)
             return False
         elif click := find_boxes_by_name(boxes, match):
             if click := find_boxes_within_boundary(click, self.get_box_by_name(box)):
                 self.click(click)
                 return True
+
+    def wait_ocr_with_possible_pop_up(self, match, box=None, raise_if_not_found=True,
+                                      time_out=30):
+        if self.wait_until(lambda: self.do_wait_pop_up_and_click(match, box), time_out=time_out,
+                           raise_if_not_found=raise_if_not_found):
+            self.sleep(0.5)
+            return True
+
+    def do_wait_ocr_with_possible_pop_up(self, match, box):
+        boxes = self.ocr()
+        if pop_up := find_boxes_by_name(boxes, pop_ups):
+            self.click(pop_up)
+            return False
+        elif click := find_boxes_by_name(boxes, match):
+            if box:
+                return find_boxes_within_boundary(click, self.get_box_by_name(box))
+            else:
+                return click
 
     def challenge_arena_opponent(self):
         challenged = 0
@@ -245,8 +264,8 @@ class DailyTask(BaseGfTask):
                         self.wait_click_ocr(match=['进攻'], box='bottom_right', after_sleep=0.5,
                                             raise_if_not_found=True)
                         self.auto_battle()
-                        self.wait_ocr(match='刷新', box='bottom_right', raise_if_not_found=True,
-                                      time_out=30)
+                        self.wait_ocr_with_possible_pop_up(match='刷新', box='bottom_right', raise_if_not_found=True,
+                                                           time_out=30)
                         self.sleep(1)
                         challenged += 1
                         continue

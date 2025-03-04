@@ -4,6 +4,7 @@ from ok import BaseTask, find_boxes_within_boundary, find_boxes_by_name
 from ok import Logger
 
 logger = Logger.get_logger(__name__)
+pop_ups = ['点击空白处关闭', '点击屏幕任意位置继续']
 
 
 class BaseGfTask(BaseTask):
@@ -37,12 +38,20 @@ class BaseGfTask(BaseTask):
                               raise_if_not_found=True, time_out=30)
             self.sleep(0.5)
         self.click_relative(0.85, 0.05, after_sleep=1)
-        result = self.wait_ocr(match=['任务完成', '任务失败', '战斗失败'], raise_if_not_found=True, time_out=600)
-        if result[0].name == '任务失败':
+        match = ['任务完成', '任务失败', '战斗失败', '对战胜利', '对战失败', '确认'] + pop_ups
+        results = []
+        while results := self.wait_ocr(match=match,
+                                       raise_if_not_found=True, time_out=900):
+            for result in results:
+                if result.name == '确认':
+                    self.click_box(result, after_sleep=2)
+                    break
+            self.click_box(results, after_sleep=2)
+            if results[0].name not in pop_ups:
+                break
+        if results[0].name == '任务失败':
             raise Exception('任务失败, 没打过!')
-        else:
-            self.click(result[0])
-        if result[0].name != '战斗失败':
+        if results[0].name != '战斗失败':
             self.wait_click_ocr(match='确认', box='bottom_right', raise_if_not_found=True, time_out=5)
         if end_match and end_box:
             self.wait_ocr(match=end_match, box=end_box, raise_if_not_found=True, time_out=30)
@@ -105,7 +114,7 @@ class BaseGfTask(BaseTask):
         return remaining
 
     def wait_pop_up(self, time_out=15):
-        return self.wait_click_ocr(match=['点击空白处关闭', '点击屏幕任意位置继续'], box='bottom', time_out=time_out,
+        return self.wait_click_ocr(match=pop_ups, box='bottom', time_out=time_out,
                                    after_sleep=2,
                                    recheck_time=1,
                                    raise_if_not_found=False)
