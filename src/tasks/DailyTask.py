@@ -107,6 +107,7 @@ class DailyTask(BaseGfTask):
         self.wait_click_ocr(match=['模拟作战'], box='top_right', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['实兵演习'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr_with_pop_up("进攻", box='bottom_right')
+        self.sleep(2)
         count = self.challenge_arena_opponent()
         self.back()
         self.sleep(1)
@@ -246,6 +247,7 @@ class DailyTask(BaseGfTask):
                         self.auto_battle()
                         self.wait_ocr(match='刷新', box='bottom_right', raise_if_not_found=True,
                                       time_out=30)
+                        self.sleep(1)
                         challenged += 1
                         continue
             if self.ocr(match=['刷新消耗'], box='bottom_right'):
@@ -266,6 +268,7 @@ class DailyTask(BaseGfTask):
         if remaining >= 10:
             self.wait_click_ocr(match=['军备解析'], box='left', after_sleep=0.5, raise_if_not_found=True,
                                 post_action=lambda: self.back(after_sleep=2))
+            self.wait_pop_up()
             while remaining >= 10:
                 remaining = self.fast_combat()
         self.ensure_main()
