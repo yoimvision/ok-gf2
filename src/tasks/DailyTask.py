@@ -58,15 +58,20 @@ class DailyTask(BaseGfTask):
     def claim_quest(self):
         self.info_set('current_task', 'claim_quest')
         self.wait_click_ocr(match=['委托'], box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
-        self.wait_click_ocr(match=['一键领取'], box='bottom_right', time_out=4,
+        self.wait_click_ocr(match=['一键领取', '无可领取报酬', '已全部领取'], box='bottom_right', time_out=4,
                             raise_if_not_found=False, after_sleep=1)
-        if self.wait_click_ocr(match=['领取全部', '无可领取报酬'], box='bottom_left', time_out=3, after_sleep=0.5):
-            self.wait_pop_up()
+        results = self.ocr(match=['领取全部', '无可领取报酬', '已全部领取'], box='bottom_left')
+        if results[0] == '领取全部':
+            self.click(results[0])
+            self.wait_pop_up(time_out=4)
         self.ensure_main()
 
     def mail(self):
         self.info_set('current_task', 'mail')
-        self.click(0.07, 0.63)
+        if self.is_adb():
+            self.click(0.07, 0.63)
+        else:
+            self.click(0.06, 0.7)
         self.wait_click_ocr(match=['领取全部'], box='bottom_left', time_out=4, after_sleep=2, raise_if_not_found=False)
 
         self.ensure_main()
