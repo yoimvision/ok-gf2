@@ -1,10 +1,14 @@
 import re
+import time
 
-from ok import BaseTask, find_boxes_within_boundary, find_boxes_by_name
+from ok import BaseTask, find_boxes_by_name
 from ok import Logger
+from ok.interaction.GenshinInteraction import GenshinInteraction
 
 logger = Logger.get_logger(__name__)
 pop_ups = ['点击空白处关闭', '点击屏幕任意位置继续']
+number_re = re.compile(r"^\d+$")
+stamina_re = re.compile(r"^\d+/\d+$")
 
 
 class BaseGfTask(BaseTask):
@@ -26,6 +30,7 @@ class BaseGfTask(BaseTask):
         result = self.wait_ocr(match=['作战开始', '行动结束'], box='bottom', time_out=60,
                                raise_if_not_found=True)
         if result[0].name == '作战开始':
+            self.sleep(2)
             self.click_box(result, after_sleep=1)
             start_result = self.wait_ocr(match=['行动结束', re.compile('还有可部署')],
                                          raise_if_not_found=True, time_out=30)
@@ -34,10 +39,16 @@ class BaseGfTask(BaseTask):
                 self.pause()
                 self.wait_click_ocr(match=['作战开始'], box='bottom', time_out=5,
                                     raise_if_not_found=True)
-                self.wait_ocr(match=['行动结束'],
+
+                self.wait_ocr(match=['行动结束'], box='bottom_right',
                               raise_if_not_found=True, time_out=30)
+
             self.sleep(0.5)
-        self.click_relative(0.85, 0.05, after_sleep=1)
+
+        if self.is_adb():
+            self.click_relative(0.85, 0.05, after_sleep=1)
+        else:
+            self.click_relative(0.88, 0.04, after_sleep=1)
         match = ['任务完成', '任务失败', '战斗失败', '对战胜利', '对战失败', '确认'] + pop_ups
         results = []
         while results := self.wait_ocr(match=match,
@@ -46,6 +57,7 @@ class BaseGfTask(BaseTask):
                 if result.name == '确认':
                     self.click_box(result, after_sleep=2)
                     break
+            self.sleep(2)
             self.click_box(results, after_sleep=2)
             if results[0].name not in pop_ups:
                 break
@@ -66,7 +78,7 @@ class BaseGfTask(BaseTask):
             else:
                 return True
         # if not self.do_handle_alert()[0]:
-        if box := self.ocr(box="bottom", match=["点击开始", "点击空白处关闭"],
+        if box := self.ocr(box="bottom", match=["点击开始", "点击空白处关闭", "取消"],
                            log=True):
             self.click(box)
             return False
@@ -76,23 +88,40 @@ class BaseGfTask(BaseTask):
             # self.do_handle_alert()
         self.next_frame()
 
+    def click(self, x=0, y=0, move_back=False, name=None, interval=-1, move=True,
+              down_time=0.01, after_sleep=0):
+        super().click(x, y, move_back=move_back, name=name, move=move, down_time=0.01, after_sleep=after_sleep,
+                      interval=interval)
+
+    def back(self, after_sleep=0):
+        if isinstance(self.executor.interaction, GenshinInteraction) and not self.hwnd.visible:
+            self.click_relative(0.03, 0.04, after_sleep=after_sleep)
+        else:
+            super().back(after_sleep=after_sleep)
+
     def find_top_right_count(self):
         result = self.ocr(0.89, 0.01, 0.99, 0.1, match=re.compile(r"^\d+/\d+$"), box='top_right')
         if not result:
             raise Exception('找不到当前体力或票')
         return int(result[0].name.split('/')[0])
 
-    def fast_combat(self):
-        self.wait_click_ocr(match=['自律'], box='bottom_right', after_sleep=1, raise_if_not_found=True)
-        boxes = self.ocr()
-        current = find_boxes_within_boundary(boxes, self.box_of_screen(0.84, 0, 0.99, 0.10))[0].name
+    def find_cost(self, boxes=None):
+        boundary = self.box_of_screen(0.48, 0.56, 0.57, 0.67)
+        if not boxes:
+            boxes = self.ocr(box=boundary)
+        return int(self.find_boxes(boxes, match=number_re, boundary=boundary)[0].name)
+
+    def fast_combat(self, battle_max=10):
+        self.wait_click_ocr(match=['自律'], box='bottom_right', after_sleep=2, raise_if_not_found=True)
+        boxes = self.ocr(log=True, threshold=0.8)
+        current = self.find_boxes(boxes, match=stamina_re, boundary=self.box_of_screen(0.84, 0, 0.99, 0.10))[
+            0].name
         current = int(current.split('/')[0])
         if len(find_boxes_by_name(boxes, ["确认", "取消"])) != 2:
             self.log_info("自律没有弹窗, 可能是调度权限不足")
             return current
 
-        cost = int(find_boxes_within_boundary(boxes, self.box_of_screen(0.48, 0.56, 0.57, 0.67))[0].name)
-        battle_max = int(find_boxes_within_boundary(boxes, self.box_of_screen(0.61, 0.50, 0.66, 0.57))[0].name)
+        cost = self.find_cost()
 
         self.info_set('current_stamina', current)
         self.info_set('battle_cost', cost)
@@ -100,12 +129,16 @@ class BaseGfTask(BaseTask):
         can_fast_count = min(int(current / cost), battle_max)
         self.info_set('can_fast_count', can_fast_count)
         self.info_set('click_battle_plus', 0)
-        remaining = current - can_fast_count * cost
-        self.info_set('remaining_stamina', remaining)
         for _ in range(can_fast_count - 1):
-            self.click(0.68, 0.54)
+            if self.is_adb():
+                self.click(0.68, 0.54)
+            else:
+                self.click(0.64, 0.54)
             self.info_incr('click_battle_plus')
             self.sleep(0.2)
+        self.sleep(1)
+        remaining = current - self.find_cost()
+        self.info_set('remaining_stamina', remaining)
         if can_fast_count > 0:
             self.click(find_boxes_by_name(boxes, "确认"))
             self.wait_pop_up()
@@ -113,8 +146,16 @@ class BaseGfTask(BaseTask):
             self.click(find_boxes_by_name(boxes, "取消"))
         return remaining
 
-    def wait_pop_up(self, time_out=15):
-        return self.wait_click_ocr(match=pop_ups, box='bottom', time_out=time_out,
-                                   after_sleep=2,
-                                   recheck_time=1,
-                                   raise_if_not_found=False)
+    def wait_pop_up(self, time_out=15, other=None, box='bottom'):
+        start = time.time()
+        check = pop_ups.copy()
+        if other:
+            if isinstance(other, list):
+                check += other
+            else:
+                check.append(other)
+        while self.wait_click_ocr(match=pop_ups, box=box, time_out=(time_out - (time.time() - start)),
+                                  after_sleep=2,
+                                  recheck_time=1,
+                                  raise_if_not_found=False):
+            pass

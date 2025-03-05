@@ -17,7 +17,7 @@ config = {
         'exe': 'GF2_Exilium.exe',
         # 'calculate_pc_exe_path': calculate_pc_exe_path,
         # 'hwnd_class': 'UnrealWindow',
-        # 'interaction': 'PostMessage',
+        'interaction': 'Genshin',
         'can_bit_blt': True,  # default false, opengl games does not support bit_blt
         'bit_blt_render_full': True,
         'check_hdr': False,
@@ -28,12 +28,6 @@ config = {
     },
     'start_timeout': 120,  # default 60
     'wait_until_before_delay': 2,  # default 1 , for wait_until() function
-    # 'template_matching': {
-    #     'coco_feature_json': os.path.join('assets', 'result.json'),
-    #     'default_horizontal_variance': 0.003,
-    #     'default_vertical_variance': 0.003,
-    #     'default_threshold': 0.78,
-    # },
     'adb': {
         'packages': ['com.Sunborn.SnqxExilium', 'com.haoplay.game.and.exilium']
     },
