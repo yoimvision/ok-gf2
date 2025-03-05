@@ -3,7 +3,6 @@ import time
 
 from ok import BaseTask, find_boxes_by_name
 from ok import Logger
-from ok.interaction.GenshinInteraction import GenshinInteraction
 
 logger = Logger.get_logger(__name__)
 pop_ups = ['点击空白处关闭', '点击屏幕任意位置继续']
@@ -94,7 +93,7 @@ class BaseGfTask(BaseTask):
                       interval=interval)
 
     def back(self, after_sleep=0):
-        if isinstance(self.executor.interaction, GenshinInteraction) and not self.hwnd.visible:
+        if not self.is_adb() and not self.hwnd.visible:
             self.click_relative(0.03, 0.04, after_sleep=after_sleep)
         else:
             super().back(after_sleep=after_sleep)
