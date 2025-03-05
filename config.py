@@ -28,9 +28,6 @@ config = {
     },
     'start_timeout': 120,  # default 60
     'wait_until_before_delay': 2,  # default 1 , for wait_until() function
-    'adb': {
-        'packages': ['com.Sunborn.SnqxExilium', 'com.haoplay.game.and.exilium']
-    },
     'window_size': {
         'width': 1200,
         'height': 800,
