@@ -89,7 +89,7 @@ class BaseGfTask(BaseTask):
 
     def click(self, x=0, y=0, move_back=False, name=None, interval=-1, move=True,
               down_time=0.01, after_sleep=0):
-        super().click(x, y, move_back=move_back, name=name, move=move, down_time=0.01, after_sleep=after_sleep,
+        super().click(x, y, move_back=move_back, name=name, move=move, down_time=0.03, after_sleep=after_sleep,
                       interval=interval)
 
     def back(self, after_sleep=0):
