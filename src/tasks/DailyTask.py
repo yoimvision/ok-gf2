@@ -2,7 +2,7 @@ import ctypes
 import re
 
 from ok import Logger, find_boxes_by_name, find_boxes_within_boundary
-from src.tasks.BaseGfTask import BaseGfTask, pop_ups, stamina_re
+from src.tasks.BaseGfTask import BaseGfTask, pop_ups, stamina_re, map_re
 
 logger = Logger.get_logger(__name__)
 
@@ -14,6 +14,7 @@ class DailyTask(BaseGfTask):
         self.name = "一键日常"
         self.description = "收菜"
         self.default_config.update({
+            '活动自律': True,
             '公共区': True,
             '购买免费礼包': True,
             '自动刷体力': True,
@@ -35,6 +36,8 @@ class DailyTask(BaseGfTask):
         # user32.BlockInput(False)
         # return self.choose_chenyan()
         self.ensure_main(recheck_time=2, time_out=90)
+        if self.config.get('活动自律'):
+            self.activity()
         if self.config.get('公共区'):
             self.gongongqu()
         if self.config.get('购买免费礼包'):
@@ -84,6 +87,21 @@ class DailyTask(BaseGfTask):
         self.wait_click_ocr(match=['一键领取'], box='bottom_right', time_out=4,
                             raise_if_not_found=False, after_sleep=1)
 
+        self.ensure_main()
+
+    def activity(self):
+        self.info_set('current_task', 'activity')
+        if self.wait_click_ocr(match=['限时开启'], box='top_right', after_sleep=0.5, raise_if_not_found=False,
+                               time_out=4):
+            if activities := self.wait_ocr(match=[re.compile(r'^\d+天\d+小时')], box='bottom_left',
+                                           raise_if_not_found=False, time_out=4):
+                self.click(activities[-1])
+                if self.wait_click_ocr(match=['活动战役', '物资模式'], box='bottom', after_sleep=0.5,
+                                       raise_if_not_found=False):
+                    battles = self.wait_ocr(match=map_re, time_out=4)
+                    if battles:
+                        self.click(battles[-1])
+                        self.fast_combat(6)
         self.ensure_main()
 
     def gongongqu(self):

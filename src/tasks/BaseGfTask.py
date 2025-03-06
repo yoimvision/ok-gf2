@@ -8,6 +8,7 @@ logger = Logger.get_logger(__name__)
 pop_ups = ['点击空白处关闭', '点击屏幕任意位置继续']
 number_re = re.compile(r"^\d+$")
 stamina_re = re.compile(r"^\d+/\d+$")
+map_re = re.compile('-?\d{1,2}-\d{1,2}\*?$')
 
 
 class BaseGfTask(BaseTask):
@@ -24,10 +25,31 @@ class BaseGfTask(BaseTask):
         if not self.wait_until(lambda: self.is_main(recheck_time=recheck_time, esc=esc), time_out=time_out):
             raise Exception("请从游戏主页进入")
 
+    def skip_dialogs(self, end_match, end_box=None, time_out=120):
+        self.info_set('current_task', 'skip_dialogs')
+        self.sleep(5)
+        start = time.time()
+        while time.time() - start < time_out:
+            boxes = self.ocr()
+            if skip := self.find_boxes(boxes, match=['跳过'] + pop_ups):
+                self.click(skip)
+                self.sleep(2)
+            elif no_alert := self.find_boxes(boxes, match='今日不再提示'):
+                self.click(no_alert)
+                self.sleep(0.2)
+                self.click(self.find_boxes(boxes, match='确认'))
+            elif result := self.find_boxes(boxes, match=end_match, boundary=end_box):
+                self.sleep(1)
+                return result
+            else:
+                self.click_relative(0.95, 0.04)
+                self.sleep(2)
+            self.next_frame()
+        raise Exception('跳过剧情超时!')
+
     def auto_battle(self, end_match=None, end_box=None):
         self.info_set('current_task', 'auto battle')
-        result = self.wait_ocr(match=['作战开始', '行动结束'], box='bottom', time_out=60,
-                               raise_if_not_found=True)
+        result = self.skip_dialogs(end_match=['作战开始', '行动结束'], end_box='bottom', time_out=120)
         if result[0].name == '作战开始':
             self.sleep(2)
             self.click_box(result, after_sleep=1)
@@ -49,9 +71,10 @@ class BaseGfTask(BaseTask):
         else:
             self.click_relative(0.88, 0.04, after_sleep=1)
         match = ['任务完成', '任务失败', '战斗失败', '对战胜利', '对战失败', '确认'] + pop_ups
+
         results = []
-        while results := self.wait_ocr(match=match,
-                                       raise_if_not_found=True, time_out=900):
+        while results := self.skip_dialogs(
+                end_match=['任务完成', '任务失败', '战斗失败', '对战胜利', '对战失败', '确认'], time_out=900):
             for result in results:
                 if result.name == '确认':
                     self.click_box(result, after_sleep=2)
@@ -60,13 +83,17 @@ class BaseGfTask(BaseTask):
             self.click_box(results, after_sleep=2)
             if results[0].name not in pop_ups:
                 break
+        if not results:
+            raise Exception('自动战斗异常')
         if results[0].name == '任务失败':
             raise Exception('任务失败, 没打过!')
         if results[0].name != '战斗失败':
-            self.wait_click_ocr(match='确认', box='bottom_right', raise_if_not_found=True, time_out=5)
-        if end_match and end_box:
-            self.wait_ocr(match=end_match, box=end_box, raise_if_not_found=True, time_out=30)
-        self.sleep(0.5)
+            self.wait_click_ocr(match='确认', box='bottom_right', raise_if_not_found=False, time_out=5)
+        if end_match:
+            match = self.wait_ocr(match=end_match, box=end_box, raise_if_not_found=True, time_out=30)
+            if match:
+                self.log_info(f'battle end matched: {match}')
+        self.sleep(2)
 
     def is_main(self, recheck_time=0, esc=True):
         boxes = self.ocr(match=['整备室', '公共区', '招募'], box='right')
@@ -108,19 +135,29 @@ class BaseGfTask(BaseTask):
         boundary = self.box_of_screen(0.48, 0.56, 0.57, 0.67)
         if not boxes:
             boxes = self.ocr(box=boundary)
-        return int(self.find_boxes(boxes, match=number_re, boundary=boundary)[0].name)
+
+        if costs := self.find_boxes(boxes, match=number_re, boundary=boundary):
+            cost = int(costs[0].name)
+        else:
+            cost = 1
+
+        return cost
 
     def fast_combat(self, battle_max=10):
         self.wait_click_ocr(match=['自律'], box='bottom_right', after_sleep=2, raise_if_not_found=True)
         boxes = self.ocr(log=True, threshold=0.8)
-        current = self.find_boxes(boxes, match=stamina_re, boundary=self.box_of_screen(0.84, 0, 0.99, 0.10))[
-            0].name
-        current = int(current.split('/')[0])
+        current = self.find_boxes(boxes, match=[stamina_re, number_re],
+                                  boundary=self.box_of_screen(0.84, 0, 0.99, 0.10))
+        if current:
+            current = int(current[0].name.split('/')[0])
+        else:
+            current = 1
+
         if len(find_boxes_by_name(boxes, ["确认", "取消"])) != 2:
             self.log_info("自律没有弹窗, 可能是调度权限不足")
             return current
 
-        cost = self.find_cost()
+        cost = self.find_cost(boxes)
 
         self.info_set('current_stamina', current)
         self.info_set('battle_cost', cost)

@@ -64,7 +64,6 @@ config = {
     'version': version,
     'onetime_tasks': [  # tasks to execute
         ["src.tasks.DailyTask", "DailyTask"],
-
-    ],
-    'my_app': ['src.globals', 'Globals'],
+        ["src.tasks.ClearMapTask", "ClearMapTask"],
+    ]
 }
