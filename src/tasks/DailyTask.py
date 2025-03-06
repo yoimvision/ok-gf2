@@ -127,7 +127,7 @@ class DailyTask(BaseGfTask):
         self.wait_click_ocr(match=['常驻礼包'], box='right', after_sleep=0.5, raise_if_not_found=True)
         if self.wait_click_ocr(match=['免费'], box='left', after_sleep=0.5, raise_if_not_found=False, time_out=4):
             self.log_info('found free item to buy')
-            self.wait_click_ocr(match=['确认'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
+            self.wait_click_ocr(match=['确认', '购买'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
             self.wait_click_ocr(match=pop_ups, box='bottom', after_sleep=0.5, raise_if_not_found=False)
         self.ensure_main()
 
