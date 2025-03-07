@@ -41,6 +41,8 @@ class BaseGfTask(BaseTask):
             elif result := self.find_boxes(boxes, match=end_match, boundary=end_box):
                 self.sleep(1)
                 return result
+            elif self.find_boxes(boxes, match=re.compile(r'回合$'), boundary='top_left'):
+                self.sleep(3)
             else:
                 self.click_relative(0.95, 0.04)
                 self.sleep(2)
@@ -116,7 +118,7 @@ class BaseGfTask(BaseTask):
 
     def click(self, x=0, y=0, move_back=False, name=None, interval=-1, move=True,
               down_time=0.01, after_sleep=0):
-        super().click(x, y, move_back=move_back, name=name, move=move, down_time=0.03, after_sleep=after_sleep,
+        super().click(x, y, move_back=move_back, name=name, move=move, down_time=0.02, after_sleep=after_sleep,
                       interval=interval)
 
     def back(self, after_sleep=0):

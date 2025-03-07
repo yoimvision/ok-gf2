@@ -179,7 +179,8 @@ class DailyTask(BaseGfTask):
         if result[0].name == '开始作战':
             self.click(result)
             self.auto_battle()
-            self.wait_ocr(match=['开始作战', '每日要务已完成'], box='bottom_right', raise_if_not_found=True)
+            self.wait_ocr(match=['开始作战', '每日要务已完成', '要务'], box='bottom_right',
+                          raise_if_not_found=True)
         else:
             self.log_info('每日要务已完成')
         self.back()
