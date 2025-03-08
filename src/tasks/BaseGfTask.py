@@ -121,11 +121,11 @@ class BaseGfTask(BaseTask):
         super().click(x, y, move_back=move_back, name=name, move=move, down_time=0.02, after_sleep=after_sleep,
                       interval=interval)
 
-    def back(self, after_sleep=0):
-        if not self.is_adb() and not self.hwnd.visible:
-            self.click_relative(0.03, 0.04, after_sleep=after_sleep)
-        else:
-            super().back(after_sleep=after_sleep)
+    # def back(self, after_sleep=0):
+    #     if not self.is_adb() and not self.hwnd.visible:
+    #         self.click_relative(0.03, 0.04, after_sleep=after_sleep)
+    #     else:
+    #         super().back(after_sleep=after_sleep)
 
     def find_top_right_count(self):
         result = self.ocr(0.89, 0.01, 0.99, 0.1, match=re.compile(r"^\d+/\d+$"), box='top_right')

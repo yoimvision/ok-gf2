@@ -95,9 +95,9 @@ class DailyTask(BaseGfTask):
                                time_out=4):
             if activities := self.wait_ocr(match=[re.compile(r'^\d+天\d+小时')], box='bottom_left',
                                            raise_if_not_found=False, time_out=4):
-                self.click(activities[-1])
+                self.click(activities[0])
                 if self.wait_click_ocr(match=['活动战役', '物资模式'], box='bottom', after_sleep=0.5,
-                                       raise_if_not_found=False):
+                                       raise_if_not_found=False, time_out=4, log=True):
                     battles = self.wait_ocr(match=map_re, time_out=4)
                     if battles:
                         self.click(battles[-1])
@@ -166,8 +166,8 @@ class DailyTask(BaseGfTask):
         while self.find_top_right_count():
             self.info_incr('bingqi')
             self.wait_click_ocr(match=['匹配'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
-            self.auto_battle()
-            self.wait_ocr(match=['匹配'], box='bottom', raise_if_not_found=True, time_out=30)
+            self.auto_battle(end_match='匹配')
+            self.sleep(2)
         self.ensure_main()
 
     def guild(self):
