@@ -41,7 +41,7 @@ class ClearMapTask(BaseGfTask):
                     self.click(text)
                     count += 1
                     if text[0].name == '挑战':
-                        self.auto_battle(end_match=map_re)
+                        self.auto_battle(end_match=map_re, has_dialog=True)
                     else:
                         self.skip_dialogs(end_match=map_re)
                 else:

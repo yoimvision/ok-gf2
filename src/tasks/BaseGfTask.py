@@ -25,13 +25,13 @@ class BaseGfTask(BaseTask):
         if not self.wait_until(lambda: self.is_main(recheck_time=recheck_time, esc=esc), time_out=time_out):
             raise Exception("请从游戏主页进入")
 
-    def skip_dialogs(self, end_match, end_box=None, time_out=120):
+    def skip_dialogs(self, end_match, end_box=None, time_out=120, has_dialog=True):
         self.info_set('current_task', 'skip_dialogs')
         self.sleep(5)
         start = time.time()
         while time.time() - start < time_out:
             boxes = self.ocr()
-            if skip := self.find_boxes(boxes, match=['跳过'] + pop_ups):
+            if skip := self.find_boxes(boxes, match=['跳过']):
                 self.click(skip)
                 self.sleep(2)
             elif no_alert := self.find_boxes(boxes, match='今日不再提示'):
@@ -43,15 +43,20 @@ class BaseGfTask(BaseTask):
                 return result
             elif self.find_boxes(boxes, match=re.compile(r'回合$'), boundary='top_left'):
                 self.sleep(3)
+            elif pop_up := self.find_boxes(boxes, match=pop_ups):
+                self.click(pop_up)
+                self.sleep(2)
             else:
-                self.click_relative(0.95, 0.04)
+                if has_dialog:
+                    self.click_relative(0.95, 0.04)
                 self.sleep(2)
             self.next_frame()
         raise Exception('跳过剧情超时!')
 
-    def auto_battle(self, end_match=None, end_box=None):
+    def auto_battle(self, end_match=None, end_box=None, has_dialog=False):
         self.info_set('current_task', 'auto battle')
-        result = self.skip_dialogs(end_match=['作战开始', '行动结束'], end_box='bottom', time_out=120)
+        result = self.skip_dialogs(end_match=['作战开始', '行动结束'], end_box='bottom', time_out=120,
+                                   has_dialog=has_dialog)
         if result[0].name == '作战开始':
             self.sleep(2)
             self.click_box(result, after_sleep=1)
@@ -76,7 +81,8 @@ class BaseGfTask(BaseTask):
 
         results = []
         while results := self.skip_dialogs(
-                end_match=['任务完成', '任务失败', '战斗失败', '对战胜利', '对战失败', '确认'], time_out=900):
+                end_match=['任务完成', '任务失败', '战斗失败', '对战胜利', '对战失败', '确认'], time_out=900,
+                has_dialog=has_dialog):
             for result in results:
                 if result.name == '确认':
                     self.click_box(result, after_sleep=2)
@@ -118,14 +124,17 @@ class BaseGfTask(BaseTask):
 
     def click(self, x=0, y=0, move_back=False, name=None, interval=-1, move=True,
               down_time=0.01, after_sleep=0):
-        super().click(x, y, move_back=move_back, name=name, move=move, down_time=0.02, after_sleep=after_sleep,
+        frame = self.frame
+        super().click(x, y, move_back=move_back, name=name, move=move, down_time=0.04, after_sleep=after_sleep,
                       interval=interval)
+        if self.debug:
+            self.screenshot('click', frame=frame)
 
-    # def back(self, after_sleep=0):
-    #     if not self.is_adb() and not self.hwnd.visible:
-    #         self.click_relative(0.03, 0.04, after_sleep=after_sleep)
-    #     else:
-    #         super().back(after_sleep=after_sleep)
+    def back(self, after_sleep=0):
+        frame = self.frame
+        super().back(after_sleep=after_sleep)
+        if self.debug:
+            self.screenshot('back', frame=frame)
 
     def find_top_right_count(self):
         result = self.ocr(0.89, 0.01, 0.99, 0.1, match=re.compile(r"^\d+/\d+$"), box='top_right')

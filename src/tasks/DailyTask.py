@@ -14,6 +14,7 @@ class DailyTask(BaseGfTask):
         self.name = "一键日常"
         self.description = "收菜"
         self.default_config.update({
+            '活动情报补给': True,
             '活动自律': True,
             '公共区': True,
             '购买免费礼包': True,
@@ -36,6 +37,8 @@ class DailyTask(BaseGfTask):
         # user32.BlockInput(False)
         # return self.choose_chenyan()
         self.ensure_main(recheck_time=2, time_out=90)
+        if self.config.get('活动情报补给'):
+            self.activity_stamina()
         if self.config.get('活动自律'):
             self.activity()
         if self.config.get('公共区'):
@@ -58,13 +61,24 @@ class DailyTask(BaseGfTask):
             self.mail()
         self.log_info('少前2日常完成!', notify=True)
 
+    def activity_stamina(self):
+        self.info_set('current_task', 'activity_stamina')
+        self.wait_click_ocr(match=['活动'], box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
+        if self.wait_click_ocr(match=['情报补给'], box='left', time_out=3,
+                               raise_if_not_found=False, after_sleep=1):
+            while self.wait_click_ocr(match=['领取'], box='bottom_right', time_out=3,
+                                      raise_if_not_found=False, after_sleep=1):
+                self.wait_pop_up(time_out=6)
+        self.ensure_main()
+
     def claim_quest(self):
         self.info_set('current_task', 'claim_quest')
         self.wait_click_ocr(match=['委托'], box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
-        self.wait_click_ocr(match=['一键领取', '无可领取报酬', '已全部领取'], box='bottom_right', time_out=4,
-                            raise_if_not_found=False, after_sleep=1)
+        self.wait_click_ocr(match=['一键领取'], box='bottom', time_out=4,
+                            raise_if_not_found=False, after_sleep=2)
+        # if results and results[0].name == '一键领取':
         results = self.ocr(match=['领取全部', '无可领取报酬', '已全部领取'], box='bottom_left')
-        if results[0] == '领取全部':
+        if results[0].name == '领取全部':
             self.click(results[0])
             self.wait_pop_up(time_out=4)
         self.ensure_main()
@@ -199,9 +213,10 @@ class DailyTask(BaseGfTask):
     def chenyan(self):
         if not self.config.get('尘烟'):
             return
-        end = self.ocr(match=re.compile('后结束'), box='bottom_right')
-        if end:
-            self.click(end, after_sleep=1)
+        end = self.ocr(match=re.compile('后结束$'), box='bottom_right')
+        if not end:
+            return
+        self.click(end, after_sleep=1)
         result = self.ocr(0.89, 0.01, 0.99, 0.1, match=stamina_re, box='top_right')
         if not result:
             raise Exception('找不到尘烟票')
@@ -289,7 +304,7 @@ class DailyTask(BaseGfTask):
             if remaining_count <= 1:
                 self.log_info(f'challenge arena complete {remaining_count}')
                 break
-            boxes = self.ocr(0, 0.55, 0.94, 0.62, match=re.compile(r"^[1-9]\d*$"))
+            boxes = self.ocr(0, 0.51, 0.94, 0.59, match=re.compile(r"^[1-9]\d*$"))
             if len(boxes) != 5:
                 if not waited_pop_up:
                     waited_pop_up = True
@@ -312,7 +327,7 @@ class DailyTask(BaseGfTask):
                         self.auto_battle()
                         self.wait_ocr_with_possible_pop_up(match='刷新', box='bottom_right', raise_if_not_found=True,
                                                            time_out=30)
-                        self.sleep(1)
+                        self.sleep(3)
                         challenged += 1
                         continue
             if self.ocr(match=['刷新消耗'], box='bottom_right'):
