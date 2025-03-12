@@ -5,10 +5,9 @@ config = {
     'use_gui': True,
     'config_folder': 'configs',
     'gui_icon': 'icon.png',
-    # 'auth': {
-    #     'app_id': 'ok-ls',
-    #     'trial': True
-    # },
+    'wait_until_before_delay': 0,  # default 1 , for wait_until() function
+    'wait_until_check_delay': 0,
+    'wait_until_settle_time': 0.5,
     'ocr': {
         'lib': 'rapidocr_openvino',
         'target_height': 540
@@ -27,7 +26,6 @@ config = {
         'require_bg': True
     },
     'start_timeout': 120,  # default 60
-    'wait_until_before_delay': 2,  # default 1 , for wait_until() function
     'window_size': {
         'width': 1200,
         'height': 800,

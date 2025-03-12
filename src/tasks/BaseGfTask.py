@@ -44,7 +44,7 @@ class BaseGfTask(BaseTask):
             elif self.find_boxes(boxes, match=re.compile(r'回合$'), boundary='top_left'):
                 self.sleep(3)
             elif pop_up := self.find_boxes(boxes, match=pop_ups):
-                self.click(pop_up)
+                self.back()
                 self.sleep(2)
             else:
                 if has_dialog:
@@ -98,9 +98,13 @@ class BaseGfTask(BaseTask):
         if results[0].name != '战斗失败':
             self.wait_click_ocr(match='确认', box='bottom_right', raise_if_not_found=False, time_out=5)
         if end_match:
-            match = self.wait_ocr(match=end_match, box=end_box, raise_if_not_found=True, time_out=30)
-            if match:
-                self.log_info(f'battle end matched: {match}')
+            while True:
+                match = self.wait_ocr(match=end_match + pop_ups, box=end_box, raise_if_not_found=True, time_out=30)
+                if match[0].name in pop_ups:
+                    self.back(after_sleep=2)
+                    continue
+                if match:
+                    self.log_info(f'battle end matched: {match}')
         self.sleep(2)
 
     def is_main(self, recheck_time=0, esc=True):
@@ -118,7 +122,7 @@ class BaseGfTask(BaseTask):
             return False
         if esc:
             self.back()
-            self.sleep(1)
+            self.sleep(4)
             # self.do_handle_alert()
         self.next_frame()
 
@@ -201,8 +205,6 @@ class BaseGfTask(BaseTask):
                 check += other
             else:
                 check.append(other)
-        while self.wait_click_ocr(match=pop_ups, box=box, time_out=(time_out - (time.time() - start)),
-                                  after_sleep=2,
-                                  recheck_time=1,
-                                  raise_if_not_found=False):
-            pass
+        while self.wait_ocr(match=pop_ups, box=box, time_out=(time_out - (time.time() - start)),
+                            raise_if_not_found=False):
+            self.back(after_sleep=2)

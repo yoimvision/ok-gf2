@@ -110,8 +110,10 @@ class DailyTask(BaseGfTask):
             if activities := self.wait_ocr(match=[re.compile(r'^\d+天\d+小时')], box='bottom_left',
                                            raise_if_not_found=False, time_out=4):
                 self.click(activities[0])
-                if self.wait_click_ocr(match=['活动战役', '物资模式'], box='bottom', after_sleep=0.5,
-                                       raise_if_not_found=False, time_out=4, log=True):
+                if to_click := self.wait_ocr(match=['活动战役', '物资模式'], box='bottom',
+                                             raise_if_not_found=False, time_out=4, log=True):
+                    self.sleep(2)
+                    self.click(to_click)
                     battles = self.wait_ocr(match=map_re, time_out=4)
                     if battles:
                         self.click(battles[-1])
@@ -150,7 +152,7 @@ class DailyTask(BaseGfTask):
         self.wait_click_ocr(match=['战役推进'], box='right', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['模拟作战'], box='top_right', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['实兵演习'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
-        self.wait_pop_up(time_out=4)
+        self.wait_pop_up(time_out=10)
         remaining_count = self.arena_remaining()
         count = 0
         if remaining_count > 1:
@@ -187,7 +189,7 @@ class DailyTask(BaseGfTask):
     def guild(self):
         self.info_set('current_task', 'guild')
         self.wait_click_ocr(match=['班组'], box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
-        self.wait_click_ocr(match=['要务'], box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
+        self.wait_click_ocr(match=['要务'], box='bottom_right', after_sleep=0.5, raise_if_not_found=True, settle_time=2)
         result = self.wait_ocr(match=['开始作战', '每日要务已完成'], box='bottom_right',
                                raise_if_not_found=True, log=True)
         if result[0].name == '开始作战':
@@ -267,8 +269,8 @@ class DailyTask(BaseGfTask):
 
     def do_wait_pop_up_and_click(self, match, box):
         boxes = self.ocr()
-        if pop_up := find_boxes_by_name(boxes, pop_ups):
-            self.click(pop_up)
+        if find_boxes_by_name(boxes, pop_ups):
+            self.back(after_sleep=2)
             return False
         elif click := find_boxes_by_name(boxes, match):
             if click := find_boxes_within_boundary(click, self.get_box_by_name(box)):
@@ -284,8 +286,8 @@ class DailyTask(BaseGfTask):
 
     def do_wait_ocr_with_possible_pop_up(self, match, box):
         boxes = self.ocr()
-        if pop_up := find_boxes_by_name(boxes, pop_ups):
-            self.click(pop_up)
+        if find_boxes_by_name(boxes, pop_ups):
+            self.back(after_sleep=2)
             return False
         elif click := find_boxes_by_name(boxes, match):
             if box:
@@ -324,9 +326,7 @@ class DailyTask(BaseGfTask):
                         self.click(box)
                         self.wait_click_ocr(match=['进攻'], box='bottom_right', after_sleep=0.5,
                                             raise_if_not_found=True)
-                        self.auto_battle()
-                        self.wait_ocr_with_possible_pop_up(match='刷新', box='bottom_right', raise_if_not_found=True,
-                                                           time_out=30)
+                        self.auto_battle(end_match='刷新')
                         self.sleep(3)
                         challenged += 1
                         continue
