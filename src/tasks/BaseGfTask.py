@@ -98,13 +98,18 @@ class BaseGfTask(BaseTask):
         if results[0].name != '战斗失败':
             self.wait_click_ocr(match='确认', box='bottom_right', raise_if_not_found=False, time_out=5)
         if end_match:
+            if isinstance(end_match, list):
+                end_match = end_match + pop_ups
+            else:
+                end_match = [end_match] + pop_ups
             while True:
-                match = self.wait_ocr(match=end_match + pop_ups, box=end_box, raise_if_not_found=True, time_out=30)
+                match = self.wait_ocr(match=end_match, box=end_box, raise_if_not_found=True, time_out=30)
                 if match[0].name in pop_ups:
                     self.back(after_sleep=2)
                     continue
                 if match:
                     self.log_info(f'battle end matched: {match}')
+                    break
         self.sleep(2)
 
     def is_main(self, recheck_time=0, esc=True):
