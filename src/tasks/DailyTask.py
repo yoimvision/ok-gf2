@@ -95,13 +95,12 @@ class DailyTask(BaseGfTask):
 
     def xunlu(self):
         self.info_set('current_task', 'xunlu')
-        self.wait_click_ocr(match=['巡录'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
-        self.wait_click_ocr(match=['沿途行动'], box='top_right', time_out=4,
-                            raise_if_not_found=True, after_sleep=1)
-        self.wait_click_ocr(match=['一键领取'], box='bottom_right', time_out=4,
-                            raise_if_not_found=False, after_sleep=1)
-
-        self.ensure_main()
+        if self.wait_click_ocr(match=['巡录'], box='bottom', after_sleep=0.5, time_out=2, raise_if_not_found=False):
+            self.wait_click_ocr(match=['沿途行动'], box='top_right', time_out=4,
+                                raise_if_not_found=True, after_sleep=1)
+            self.wait_click_ocr(match=['一键领取'], box='bottom_right', time_out=4,
+                                raise_if_not_found=False, after_sleep=1)
+            self.ensure_main()
 
     def activity(self):
         self.info_set('current_task', 'activity')
@@ -303,6 +302,7 @@ class DailyTask(BaseGfTask):
         waited_pop_up = False
         while True:
             remaining_count = self.arena_remaining()
+            self.log_info(f'challenge_arena_opponent remaining_count {remaining_count}')
             if remaining_count <= 1:
                 self.log_info(f'challenge arena complete {remaining_count}')
                 break
@@ -316,6 +316,9 @@ class DailyTask(BaseGfTask):
                     raise Exception("找不到五个演习对手")
             self.log_info(f'arena opponents {boxes}')
             for box in boxes:
+                if remaining_count - challenged <= 1:
+                    self.log_info(f'challenged enough return {remaining_count} {challenged}')
+                    return challenged
                 if int(box.name) < 5000:
                     search_success = box.copy()
                     search_success.width = self.width_of_screen(0.17)
