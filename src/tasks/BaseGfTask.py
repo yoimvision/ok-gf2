@@ -152,7 +152,7 @@ class BaseGfTask(BaseTask):
         return int(result[0].name.split('/')[0])
 
     def find_cost(self, boxes=None):
-        boundary = self.box_of_screen(0.48, 0.56, 0.57, 0.67)
+        boundary = self.box_of_screen(0.48, 0.56, 0.57, 0.7)
         if not boxes:
             boxes = self.ocr(box=boundary)
 
