@@ -163,9 +163,12 @@ class BaseGfTask(BaseTask):
 
         return cost
 
-    def fast_combat(self, battle_max=10):
+    def fast_combat(self, battle_max=10, plus_x=0.64, plus_y=0.54):
         self.wait_click_ocr(match=['自律'], box='bottom_right', after_sleep=2, raise_if_not_found=True)
         boxes = self.ocr(log=True, threshold=0.8)
+        if next := self.find_boxes(boxes, '下一步', "bottom_right"):
+            self.click(next, after_sleep=1)
+            boxes = self.ocr(log=True, threshold=0.8)
         current = self.find_boxes(boxes, match=[stamina_re, number_re],
                                   boundary=self.box_of_screen(0.84, 0, 0.99, 0.10))
         if current:
@@ -173,7 +176,9 @@ class BaseGfTask(BaseTask):
         else:
             current = 1
 
-        if len(find_boxes_by_name(boxes, ["确认", "取消"])) != 2:
+        if len(find_boxes_by_name(boxes, ["确认", "取消", "上一步"])) != 2:
+            if self.debug:
+                self.screenshot('fast_no_zilv')
             self.log_info("自律没有弹窗, 可能是调度权限不足")
             return current
 
@@ -186,10 +191,7 @@ class BaseGfTask(BaseTask):
         self.info_set('can_fast_count', can_fast_count)
         self.info_set('click_battle_plus', 0)
         for _ in range(can_fast_count - 1):
-            if self.is_adb():
-                self.click(0.68, 0.54)
-            else:
-                self.click(0.64, 0.54)
+            self.click(plus_x, plus_y)
             self.info_incr('click_battle_plus')
             self.sleep(0.2)
         self.sleep(1)
@@ -197,12 +199,13 @@ class BaseGfTask(BaseTask):
         self.info_set('remaining_stamina', remaining)
         if can_fast_count > 0:
             self.click(find_boxes_by_name(boxes, "确认"))
-            self.wait_pop_up()
+            self.wait_pop_up(count=1)
+            self.wait_ocr(match=['自律'], box='bottom_right', raise_if_not_found=True)
         else:
             self.click(find_boxes_by_name(boxes, "取消"))
         return remaining
 
-    def wait_pop_up(self, time_out=15, other=None, box='bottom'):
+    def wait_pop_up(self, time_out=15, other=None, box='bottom', count=100):
         start = time.time()
         check = pop_ups.copy()
         if other:
@@ -210,6 +213,8 @@ class BaseGfTask(BaseTask):
                 check += other
             else:
                 check.append(other)
-        while self.wait_ocr(match=pop_ups, box=box, time_out=(time_out - (time.time() - start)),
-                            raise_if_not_found=False):
+        found_count = 0
+        while self.wait_ocr(match=pop_ups, box=box, settle_time=2, time_out=(time_out - (time.time() - start)),
+                            raise_if_not_found=False) and found_count < count:
+            found_count += 1
             self.back(after_sleep=2)

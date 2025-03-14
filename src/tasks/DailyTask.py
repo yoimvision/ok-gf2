@@ -1,4 +1,3 @@
-import ctypes
 import re
 
 from ok import Logger, find_boxes_by_name, find_boxes_within_boundary
@@ -14,11 +13,13 @@ class DailyTask(BaseGfTask):
         self.name = "一键日常"
         self.description = "收菜"
         self.default_config.update({
+            '体力本': "军备解析",
             '活动情报补给': True,
             '活动自律': True,
             '公共区': True,
             '购买免费礼包': True,
             '自动刷体力': True,
+            '刷钱本': True,
             '竞技场': True,
             '兵棋推演': True,
             '班组': True,
@@ -27,15 +28,12 @@ class DailyTask(BaseGfTask):
             '大月卡': True,
             '邮件': True,
         })
+        self.stamina_options = ['军备解析', '深度搜索', '决策构象', '突击', '冲锋',
+                                '狙击', '手枪']
+        self.config_type["体力本"] = {'type': "drop_down",
+                                      'options': self.stamina_options}
 
     def run(self):
-        user32 = ctypes.windll.user32
-
-        # Block input using BlockInput API from user32.dll
-        # user32.BlockInput(True)
-        # time.sleep(1)
-        # user32.BlockInput(False)
-        # return self.choose_chenyan()
         self.ensure_main(recheck_time=2, time_out=90)
         if self.config.get('活动情报补给'):
             self.activity_stamina()
@@ -346,15 +344,29 @@ class DailyTask(BaseGfTask):
         if self.is_adb():
             self.swipe_relative(0.8, 0.6, 0.5, 0.6, duration=1)
         self.sleep(1)
-        self.wait_click_ocr(match=['标准同调'], box='right', after_sleep=0.5, raise_if_not_found=True)
-        remaining = self.fast_combat(battle_max=4)
-        self.back()
-        if remaining >= 10:
-            self.wait_click_ocr(match=['军备解析'], box='left', after_sleep=0.5, raise_if_not_found=True,
-                                post_action=lambda: self.back(after_sleep=2))
-            # self.wait_pop_up(time_out=15)
-            while remaining >= 10:
-                remaining = self.fast_combat()
+        remaining = 10000
+        if self.config.get('刷钱本'):
+            self.wait_click_ocr(match=['标准同调'], box='right', after_sleep=0.5, raise_if_not_found=True)
+            remaining = self.fast_combat(battle_max=4)
+            self.back(after_sleep=1)
+        target = self.config.get('体力本')
+        min_stamina = 10 if self.stamina_options.index(target) < 2 else 20
+        if remaining >= min_stamina:
+            ding_xiang = self.stamina_options.index(target) >= 3
+            if ding_xiang:
+                target = '定向精研'
+            self.wait_click_ocr(match=target, settle_time=1, after_sleep=0.5, raise_if_not_found=True, log=True)
+            if ding_xiang:
+                self.wait_click_ocr(match=re.compile(self.config.get('体力本')),
+                                    box=self.box_of_screen(0.01, 0.21, 0.73, 0.31),
+                                    settle_time=0.5,
+                                    after_sleep=0.5, log=True,
+                                    raise_if_not_found=True)
+            while remaining >= min_stamina:
+                if ding_xiang:
+                    remaining = self.fast_combat(plus_x=0.69, plus_y=0.59)
+                else:
+                    remaining = self.fast_combat()
         self.ensure_main()
 
 
