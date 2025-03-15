@@ -7,7 +7,7 @@ from ok import Logger
 logger = Logger.get_logger(__name__)
 pop_ups = ['点击空白处关闭', '点击屏幕任意位置继续']
 number_re = re.compile(r"^\d+$")
-stamina_re = re.compile(r"^\d+/\d+$")
+stamina_re = re.compile(r"^\d+/\d+")
 map_re = re.compile('-?\d{1,2}-\d{1,2}\*?$')
 
 
@@ -151,7 +151,7 @@ class BaseGfTask(BaseTask):
             raise Exception('找不到当前体力或票')
         return int(result[0].name.split('/')[0])
 
-    def find_cost(self, boxes=None):
+    def find_cost(self, boxes=None, default=30):
         boundary = self.box_of_screen(0.48, 0.56, 0.57, 0.7)
         if not boxes:
             boxes = self.ocr(box=boundary)
@@ -159,16 +159,16 @@ class BaseGfTask(BaseTask):
         if costs := self.find_boxes(boxes, match=number_re, boundary=boundary):
             cost = int(costs[0].name)
         else:
-            cost = 1
-
+            cost = default
         return cost
 
-    def fast_combat(self, battle_max=10, plus_x=0.64, plus_y=0.54):
+    def fast_combat(self, battle_max=10, plus_x=0.64, plus_y=0.54, default_cost=10):
         self.wait_click_ocr(match=['自律'], box='bottom_right', after_sleep=2, raise_if_not_found=True)
         boxes = self.ocr(log=True, threshold=0.8)
         if next := self.find_boxes(boxes, '下一步', "bottom_right"):
             self.click(next, after_sleep=1)
             boxes = self.ocr(log=True, threshold=0.8)
+            default_cost = 30
         current = self.find_boxes(boxes, match=[stamina_re, number_re],
                                   boundary=self.box_of_screen(0.84, 0, 0.99, 0.10))
         if current:
@@ -182,7 +182,7 @@ class BaseGfTask(BaseTask):
             self.log_info("自律没有弹窗, 可能是调度权限不足")
             return current
 
-        cost = self.find_cost(boxes)
+        cost = self.find_cost(boxes, default=default_cost)
 
         self.info_set('current_stamina', current)
         self.info_set('battle_cost', cost)
