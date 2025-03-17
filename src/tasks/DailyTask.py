@@ -32,6 +32,7 @@ class DailyTask(BaseGfTask):
                                 '狙击', '手枪']
         self.config_type["体力本"] = {'type': "drop_down",
                                       'options': self.stamina_options}
+        self.add_exit_after_config()
 
     def run(self):
         self.ensure_main(recheck_time=2, time_out=90)
@@ -149,7 +150,7 @@ class DailyTask(BaseGfTask):
         self.wait_click_ocr(match=['战役推进'], box='right', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['模拟作战'], box='top_right', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match=['实兵演习'], box='bottom', after_sleep=0.5, raise_if_not_found=True)
-        self.wait_pop_up(time_out=10)
+        self.wait_pop_up(time_out=15)
         remaining_count = self.arena_remaining()
         count = 0
         if remaining_count > 1:

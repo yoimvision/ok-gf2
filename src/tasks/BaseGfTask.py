@@ -5,7 +5,7 @@ from ok import BaseTask, find_boxes_by_name
 from ok import Logger
 
 logger = Logger.get_logger(__name__)
-pop_ups = ['点击空白处关闭', '点击屏幕任意位置继续']
+pop_ups = ['点击空白处关闭', '点击屏幕任意位置继续', '点击任意位置继续']
 number_re = re.compile(r"^\d+$")
 stamina_re = re.compile(r"^\d+/\d+")
 map_re = re.compile('-?\d{1,2}-\d{1,2}\*?$')
@@ -217,4 +217,4 @@ class BaseGfTask(BaseTask):
         while self.wait_ocr(match=pop_ups, box=box, settle_time=2, time_out=(time_out - (time.time() - start)),
                             raise_if_not_found=False) and found_count < count:
             found_count += 1
-            self.back(after_sleep=2)
+            self.back(after_sleep=3)
