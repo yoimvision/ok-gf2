@@ -63,13 +63,13 @@ class BaseGfTask(BaseTask):
             start_result = self.wait_ocr(match=['行动结束', re.compile('还有可部署')],
                                          raise_if_not_found=True, time_out=30)
             if '还有可部署' in start_result[0].name:
-                self.log_error('阵容没上满, 请上阵后再点击继续任务, 不支持选择助战!', notify=True)
+                self.log_info('阵容没上满!', notify=True)
 
                 self.wait_click_ocr(match=['确认'], box='bottom', time_out=5,
                                     raise_if_not_found=True)
 
                 self.wait_ocr(match=['行动结束'], box='bottom_right',
-                              raise_if_not_found=True, time_out=30)
+                              raise_if_not_found=False, time_out=30)
 
             self.sleep(0.5)
 
