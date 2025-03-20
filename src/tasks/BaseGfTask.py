@@ -64,8 +64,8 @@ class BaseGfTask(BaseTask):
                                          raise_if_not_found=True, time_out=30)
             if '还有可部署' in start_result[0].name:
                 self.log_error('阵容没上满, 请上阵后再点击继续任务, 不支持选择助战!', notify=True)
-                self.pause()
-                self.wait_click_ocr(match=['作战开始'], box='bottom', time_out=5,
+
+                self.wait_click_ocr(match=['确认'], box='bottom', time_out=5,
                                     raise_if_not_found=True)
 
                 self.wait_ocr(match=['行动结束'], box='bottom_right',

@@ -265,6 +265,26 @@ class DailyTask(BaseGfTask):
             self.sleep(0.5)
             return True
 
+    # def wait_click_ocr(self, x=0, y=0, to_x=1, to_y=1, width=0, height=0, box=None, name=None,
+    #                    match=None, threshold=0, frame=None, target_height=0, time_out=0,
+    #                    raise_if_not_found=False, recheck_time=0, after_sleep=0, post_action=None, log=False,
+    #                    settle_time=-1):
+    #
+    #     result = self.wait_ocr(x, y, width=width, height=height, to_x=to_x, to_y=to_y, box=box, name=name, match=match,
+    #                            threshold=threshold, frame=frame, target_height=target_height, time_out=time_out,
+    #                            raise_if_not_found=raise_if_not_found, post_action=post_action, log=log,
+    #                            settle_time=settle_time)
+    #
+    #     if result is not None:
+    #         self.click_box(result, after_sleep=after_sleep)
+    #         while result := self.ocr(x, y, width=width, height=height, to_x=to_x, to_y=to_y, box=box, name=name,
+    #                                  match=match,
+    #                                  threshold=threshold, frame=frame, target_height=target_height, log=log):
+    #             self.click_box(result, after_sleep=after_sleep)
+    #         return result
+    #     else:
+    #         logger.warning(f'wait ocr no box {x} {y} {width} {height} {to_x} {to_y} {match}')
+
     def do_wait_pop_up_and_click(self, match, box):
         boxes = self.ocr()
         if find_boxes_by_name(boxes, pop_ups):
