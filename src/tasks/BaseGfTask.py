@@ -13,13 +13,6 @@ map_re = re.compile('-?\d{1,2}-\d{1,2}\*?$')
 
 class BaseGfTask(BaseTask):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # from ok import og
-        # self.log_debug(f'{og.config.get("auth").get("app_id")}')
-        # if og.config.get("auth").get("app_id") != 'ok-ls':
-        #     sys.exit(1)
-
     def ensure_main(self, recheck_time=1, time_out=30, esc=True):
         self.info_set('current_task', 'go_to_main')
         if not self.wait_until(lambda: self.is_main(recheck_time=recheck_time, esc=esc), time_out=time_out):
@@ -77,9 +70,7 @@ class BaseGfTask(BaseTask):
             self.click_relative(0.85, 0.05, after_sleep=1)
         else:
             self.click_relative(0.88, 0.04, after_sleep=1)
-        match = ['任务完成', '任务失败', '战斗失败', '对战胜利', '对战失败', '确认'] + pop_ups
 
-        results = []
         while results := self.skip_dialogs(
                 end_match=['任务完成', '任务失败', '战斗失败', '对战胜利', '对战失败', '确认'], time_out=900,
                 has_dialog=has_dialog):
@@ -128,7 +119,6 @@ class BaseGfTask(BaseTask):
         if esc:
             self.back()
             self.sleep(4)
-            # self.do_handle_alert()
         self.next_frame()
 
     def click(self, x=0, y=0, move_back=False, name=None, interval=-1, move=True,
