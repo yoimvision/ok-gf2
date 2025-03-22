@@ -108,14 +108,15 @@ class DailyTask(BaseGfTask):
             if activities := self.wait_ocr(match=[re.compile(r'^\d+天\d+小时')], box='bottom_left',
                                            raise_if_not_found=False, time_out=4):
                 self.click(activities[0])
-                if to_click := self.wait_ocr(match=['活动战役', '物资模式'], box='bottom',
-                                             raise_if_not_found=False, time_out=4, log=True):
-                    self.sleep(2)
-                    self.click(to_click)
+                if to_click := self.wait_ocr(match=['活动战役', re.compile('物资')], box='bottom',
+                                             raise_if_not_found=False, time_out=4, settle_time=2, log=True):
+                    self.click(to_click, after_sleep=2)
+                    if wuzi := self.ocr(match=re.compile('物资'), box='bottom_right'):
+                        self.click(wuzi, after_sleep=0.5)
                     battles = self.wait_ocr(match=map_re, time_out=4)
                     if battles:
                         self.click(battles[-1])
-                        self.fast_combat(6)
+                        self.fast_combat(6, default_cost=1)
         self.ensure_main()
 
     def gongongqu(self):

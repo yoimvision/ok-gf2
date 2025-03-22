@@ -180,6 +180,7 @@ class BaseGfTask(BaseTask):
         can_fast_count = min(int(current / cost), battle_max)
         self.info_set('can_fast_count', can_fast_count)
         self.info_set('click_battle_plus', 0)
+        self.log_info(f'battle cost: {cost} current_stamina: {current} can_fast_count: {can_fast_count}')
         for _ in range(can_fast_count - 1):
             self.click(plus_x, plus_y)
             self.info_incr('click_battle_plus')
