@@ -10,7 +10,7 @@ config = {
     'wait_until_settle_time': 0.5,
     'ocr': {
         'lib': 'rapidocr',
-        # 'target_height': 1080
+        'target_height': 1080
     },
     'windows': {  # required  when supporting windows game
         'exe': 'GF2_Exilium.exe',
