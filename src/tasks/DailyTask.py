@@ -33,6 +33,7 @@ class DailyTask(BaseGfTask):
         self.config_type["体力本"] = {'type': "drop_down",
                                       'options': self.stamina_options}
         self.add_exit_after_config()
+        # self.add_text_fix()
 
     def run(self):
         self.ensure_main(recheck_time=2, time_out=90)
@@ -249,15 +250,23 @@ class DailyTask(BaseGfTask):
 
         self.wait_click_ocr(match='助战', box='bottom_right', after_sleep=0.5, raise_if_not_found=True)
         self.wait_click_ocr(match='火力', box='top_right', after_sleep=2, raise_if_not_found=True)
-        priority = ['可露凯', '玛绮朵', '琼玖', '托洛洛']
+        priority = ['可露凯', '妮基塔', '绛雨', '玛绮朵', '琼玖', '托洛洛']
         chars = self.ocr(0.18, 0.27, 0.82, 0.79, match=re.compile(r'^\D*$'))
+        my_chars = []
         sorted_chars = sort_characters_by_priority(chars, priority)
         for char in sorted_chars:
+            if char.name in my_chars:
+                continue
             self.click(char, after_sleep=1)
             join = self.ocr(match='入队', box='bottom_right')
             if join:
                 self.click_box(join, after_sleep=1)
-                break
+                if self.ocr(box='bottom_right', match="确认"):
+                    my_chars.append(char.name)
+                    self.back(after_sleep=1)
+                    self.log_info(f'duplicate char {my_chars}')
+                else:
+                    break
         self.wait_click_ocr(match='确定', box='bottom_right')
         self.auto_battle('开始作战', 'bottom_right')
 
@@ -403,3 +412,8 @@ def sort_characters_by_priority(chars, priority):
     sorted_chars.sort()  # Sort the list of tuples
 
     return [char_object for _, _, char_object in sorted_chars]  # Extract the character objects
+
+
+text_fix = {
+    '再次派造': '再次派遣',
+}
