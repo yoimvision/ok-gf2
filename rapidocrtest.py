@@ -4,12 +4,14 @@ from rapidocr import RapidOCR, VisRes
 
 vis = VisRes()
 
-engine = RapidOCR(params={"Global.use_cls": False,
+engine = RapidOCR(params={"Global.use_cls": False, "Global.max_side_len": 4000, "Global.min_side_len": 0,
                           "EngineConfig.onnxruntime.use_dml": True})
 image_path = 'tests/images/negative_text.png'
 img = cv2.imread(image_path)
-
-result = engine(img, use_cls=False)
+# img = cv2.resize(img, (1920, 1080))
+for i in range(1):
+    result = engine(img, use_cls=False)
+    print(result.elapse)
 
 for i in range(len(result.boxes)):
     pos = result.boxes[i]

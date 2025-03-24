@@ -5,6 +5,5 @@ main.py
 ok-gf2.exe
 main.py
 icon.png
-rapidocr
 requirements.txt
 README.md

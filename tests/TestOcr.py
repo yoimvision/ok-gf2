@@ -1,4 +1,5 @@
 # Test case
+import time
 import unittest
 
 from config import config
@@ -14,8 +15,12 @@ class TestBattleBaseSerialization(TaskTestCase):
     def test_paiqian(self):
         # Create a BattleReport object
         self.set_image('tests/images/paiqian.png')
-        paiqian = self.task.ocr(match=['再次派遣'], box='bottom', log=True)
-        self.assertEqual(paiqian[0].name, "再次派遣")
+        start = time.time()
+        count = 1
+        for i in range(count):
+            paiqian = self.task.ocr(match=['再次派遣'], box='bottom', log=True)
+            self.assertEqual(paiqian[0].name, "再次派遣")
+        self.task.log_info(f'ocr_mean_time {(time.time() - start) / count}')
 
 
 if __name__ == '__main__':
