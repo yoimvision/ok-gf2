@@ -114,7 +114,7 @@ class BaseGfTask(BaseTask):
         # if not self.do_handle_alert()[0]:
         if box := self.ocr(box="bottom", match=["点击开始", "点击空白处关闭", "取消"],
                            log=True):
-            self.click(box)
+            self.click(box, after_sleep=2)
             return False
         if esc:
             self.back()
