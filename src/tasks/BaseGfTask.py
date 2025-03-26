@@ -93,6 +93,7 @@ class BaseGfTask(BaseTask):
                 end_match = end_match + pop_ups
             else:
                 end_match = [end_match] + pop_ups
+            end_match.append('确认')
             while True:
                 match = self.wait_ocr(match=end_match, box=end_box, raise_if_not_found=True, time_out=30)
                 if match[0].name in pop_ups:
@@ -122,10 +123,10 @@ class BaseGfTask(BaseTask):
         self.next_frame()
 
     def click(self, x=0, y=0, move_back=False, name=None, interval=-1, move=True,
-              down_time=0.01, after_sleep=0):
+              down_time=0.01, after_sleep=0, key="left"):
         frame = self.frame
         super().click(x, y, move_back=move_back, name=name, move=move, down_time=0.04, after_sleep=after_sleep,
-                      interval=interval)
+                      interval=interval, key=key)
         if self.debug:
             self.screenshot('click', frame=frame)
 
