@@ -44,9 +44,9 @@ config = {
             'pip_url': 'https://mirrors.aliyun.com/pypi/simple'
         },
         {
-            'name': '清华大学',
+            'name': 'China',
             'git_url': 'https://e.coding.net/g-frfh1513/ok-wuthering-waves/ok-gf2.git',
-            'pip_url': 'https://pypi.tuna.tsinghua.edu.cn/simple'
+            'pip_url': 'https://mirrors.aliyun.com/pypi/simple'
         },
         {
             'name': '腾讯云',
@@ -63,6 +63,6 @@ config = {
     'onetime_tasks': [  # tasks to execute
         ["src.tasks.DailyTask", "DailyTask"],
         ["src.tasks.ClearMapTask", "ClearMapTask"],
-        ["src.tasks.DiagnosisTask", "DiagnosisTask"],
+        ["ok", "DiagnosisTask"],
     ]
 }

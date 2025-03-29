@@ -161,10 +161,10 @@ class DailyTask(BaseGfTask):
             count = self.challenge_arena_opponent()
             self.back()
             self.sleep(1)
-        if count > 0:
-            self.click_relative(0.34 if self.is_adb() else 0.26, 0.89, after_sleep=0.5)
-            if not self.wait_ocr(match=['演习补给'], box='top', time_out=4):
-                self.wait_pop_up(time_out=4)
+        # if count > 0:
+        #     self.click_relative(0.34 if self.is_adb() else 0.26, 0.89, after_sleep=0.5)
+        #     if not self.wait_ocr(match=['演习补给'], box='top', time_out=4):
+        #         self.wait_pop_up(time_out=4)
         self.ensure_main()
 
     def bingqi(self):
