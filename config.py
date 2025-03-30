@@ -10,7 +10,8 @@ config = {
     'wait_until_settle_time': 0.5,
     'ocr': {
         'lib': 'rapidocr',
-        'target_height': 1080
+        'target_height': 1080,
+        'log_debug': True,
     },
     'windows': {  # required  when supporting windows game
         'exe': 'GF2_Exilium.exe',
@@ -60,6 +61,7 @@ config = {
     'log_file': 'logs/ok-ww.log',  # Optional, auto rotating every day
     'error_log_file': 'logs/ok-ww_error.log',
     'version': version,
+    'my_app': ['src.globals', 'Globals'],
     'onetime_tasks': [  # tasks to execute
         ["src.tasks.DailyTask", "DailyTask"],
         ["src.tasks.ClearMapTask", "ClearMapTask"],
