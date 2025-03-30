@@ -16,11 +16,8 @@ msgstr ""
 
 # --- Previous Strings ---
 
-msgid "^\d+天\d+小时"
-msgstr "^\d+\s+[Dd]ays?\s+\d+\s+[Hh]ours?"
-
 # Strings extracted from the 'pop_ups' list used in 'match' parameter
-msgid "Tap the blank area to close"
+msgid "Click anywhere to exit"
 msgstr "点击空白处关闭"
 
 msgid "Tap anywhere on the screen to continue"
@@ -48,13 +45,13 @@ msgid "Confirm"
 msgstr "确认"
 
 # From auto_battle: self.skip_dialogs(end_match=['作战开始', '行动结束'], ...) -> used inside skip_dialogs
-msgid "Operation Start"
+msgid "Combat Start"
 msgstr "作战开始"
 
 # From auto_battle: self.skip_dialogs(end_match=['作战开始', '行动结束'], ...) -> used inside skip_dialogs
 # From auto_battle: self.wait_ocr(match=['行动结束', re.compile('还有可部署')], ...)
 # From auto_battle: self.wait_ocr(match=['行动结束'], ...)
-msgid "Action End"
+msgid "End Action"
 msgstr "行动结束"
 
 # From auto_battle: self.wait_ocr(match=['行动结束', re.compile('还有可部署')], ...)
@@ -63,7 +60,7 @@ msgid "Units can still be deployed"
 msgstr "还有可部署"
 
 # From auto_battle: self.skip_dialogs(end_match=['任务完成', ...], ...) -> used inside skip_dialogs
-msgid "Mission Accomplished"
+msgid "Mission Completed"
 msgstr "任务完成"
 
 # From auto_battle: self.skip_dialogs(end_match=[..., '任务失败', ...], ...) -> used inside skip_dialogs
@@ -83,16 +80,16 @@ msgid "Defeat"
 msgstr "对战失败"
 
 # From is_main: self.ocr(match=['整备室', '公共区', '招募'], ...)
-msgid "Armory"
+msgid "Refitting Room"
 msgstr "整备室"
 
 # From is_main: self.ocr(match=['整备室', '公共区', '招募'], ...)
 # From gongongqu: self.wait_click_ocr(match=['公共区'], ...)
-msgid "Base"
+msgid "Public Area"
 msgstr "公共区"
 
 # From is_main: self.ocr(match=['整备室', '公共区', '招募'], ...)
-msgid "Recruit"
+msgid "Recruitment"
 msgstr "招募"
 
 # From is_main: self.ocr(..., match=["点击开始", "点击空白处关闭", "取消"], ...)
@@ -106,7 +103,7 @@ msgstr "取消"
 
 # From fast_combat: self.wait_click_ocr(match=['自律'], ...)
 # From fast_combat: self.wait_ocr(match=['自律'], ...)
-msgid "Auto-Battle"
+msgid "Auto"
 msgstr "自律"
 
 # --- New Strings from ClearMapTask ---
@@ -161,7 +158,7 @@ msgid "War Chess Simulation"
 msgstr "兵棋推演"
 
 # From DailyTask default_config keys (used implicitly or for options)
-msgid "Squad"
+msgid "Platoon"
 msgstr "班组"
 
 # From DailyTask default_config keys (used implicitly or for options)
@@ -181,15 +178,15 @@ msgid "Mail"
 msgstr "邮件"
 
 # From stamina_options (used in config and potentially match)
-msgid "Armaments Analysis"
+msgid "Equipment Analysis"
 msgstr "军备解析"
 
 # From stamina_options (used in config and potentially match)
-msgid "Deep Search"
+msgid "In-Depth Search"
 msgstr "深度搜索"
 
 # From stamina_options (used in config and potentially match)
-msgid "Decision Conformation"
+msgid "Cognitive Configuration"
 msgstr "决策构象"
 
 # From stamina_options (used in config and potentially match)
@@ -221,7 +218,7 @@ msgid "Claim"
 msgstr "领取"
 
 # From claim_quest: self.wait_click_ocr(match=['委托'], ...)
-msgid "Commission"
+msgid "Commissions"
 msgstr "委托"
 
 # From claim_quest: self.ocr(match=['领取全部', '无可领取报酬', '已全部领取'], ...)
@@ -239,15 +236,15 @@ msgid "All Claimed"
 msgstr "已全部领取"
 
 # From xunlu: self.wait_click_ocr(match=['巡录'], ...)
-msgid "Patrol Log"
+msgid "Voyage"
 msgstr "巡录"
 
 # From xunlu: self.wait_click_ocr(match=['沿途行动'], ...)
-msgid "Actions Along the Way"
+msgid "Actions En Route"
 msgstr "沿途行动"
 
 # From activity: self.wait_click_ocr(match=['限时开启'], ...)
-msgid "Limited Time Open"
+msgid "Time-Limited Events"
 msgstr "限时开启"
 
 # From activity: self.wait_ocr(match=['活动战役', re.compile('物资')], ...)
@@ -268,7 +265,7 @@ msgid "Dispatch Income"
 msgstr "调度收益"
 
 # From gongongqu: self.wait_click_ocr(match=['取出'], ...)
-msgid "Retrieve"
+msgid "Withdraw"
 msgstr "取出"
 
 # From gongongqu: self.wait_click_ocr(match=['资源生产'], ...)
@@ -297,7 +294,7 @@ msgid "Periodic Pack"
 msgstr "周期礼包"
 
 # From shopping: self.wait_click_ocr(match=['周期礼包', '常驻礼包'], ...)
-msgid "Permanent Pack"
+msgid "Standard Package"
 msgstr "常驻礼包"
 
 # From shopping: self.wait_click_ocr(match=['免费'], ...)
@@ -305,22 +302,22 @@ msgid "Free"
 msgstr "免费"
 
 # From shopping: self.wait_click_ocr(match=['确认', '购买'], ...)
-msgid "Purchase"
+msgid "Confirm"
 msgstr "购买"
 
 # From arena: self.wait_click_ocr(match=['战役推进'], ...)
 # From bingqi: self.wait_click_ocr(match=['战役推进'], ...)
 # From battle: self.wait_click_ocr(match=['战役推进'], ...)
-msgid "Campaign Progress"
+msgid "Campaign"
 msgstr "战役推进"
 
 # From arena: self.wait_click_ocr(match=['模拟作战'], ...)
 # From bingqi: self.wait_click_ocr(match=['模拟作战'], ...)
-msgid "Simulated Combat"
+msgid "Combat Simulations"
 msgstr "模拟作战"
 
 # From arena: self.wait_click_ocr(match=['实兵演习'], ...)
-msgid "Live Drill"
+msgid "Combat Exercise"
 msgstr "实兵演习"
 
 # From arena: self.wait_click_ocr_with_pop_up("进攻", ...)
@@ -349,7 +346,7 @@ msgstr "匹配"
 
 # From guild: self.wait_click_ocr(match=['要务'], ...)
 # From guild: self.wait_ocr(match=['开始作战', '每日要务已完成', '要务'], ...)
-msgid "Assignments"
+msgid "Essential tasks"
 msgstr "要务"
 
 # From guild: self.wait_ocr(match=['开始作战', '每日要务已完成'], ...)
@@ -357,17 +354,17 @@ msgstr "要务"
 # From guild: self.wait_ocr(match=['开始作战', '每日要务已完成', '要务'], ...)
 # From chenyan: self.wait_click_ocr(match='开始作战', ...)
 # From auto_battle: self.auto_battle('开始作战', 'bottom_right')
-msgid "Start Operation"
+msgid "Start Combat"
 msgstr "开始作战"
 
 # From guild: self.wait_ocr(match=['开始作战', '每日要务已完成'], ...)
 # From guild: self.log_info('每日要务已完成')
 # From guild: self.wait_ocr(match=['开始作战', '每日要务已完成', '要务'], ...)
-msgid "Daily Assignments Completed"
+msgid "Daily Patrol has been accomplished"
 msgstr "每日要务已完成"
 
 # From guild: self.wait_click_ocr(match=['补给'], ...)
-msgid "Supply"
+msgid "Resupply"
 msgstr "补给"
 
 # From chenyan: self.wait_click_ocr(match='攻坚战', ...)
@@ -420,19 +417,19 @@ msgid "Refresh"
 msgstr "刷新"
 
 # From challenge_arena_opponent: if self.ocr(match=['刷新消耗'], ...)
-msgid "Refresh Cost"
+msgid "Expenditure"
 msgstr "刷新消耗"
 
 # From battle: self.wait_click_ocr(match=['补给作战'], ...)
-msgid "Supply Operation"
+msgid "Supply Missions"
 msgstr "补给作战"
 
 # From battle: self.wait_click_ocr(match=['标准同调'], ...)
-msgid "Standard Tuning"
+msgid "Standardizing Sync"
 msgstr "标准同调"
 
 # From battle: target = '定向精研'
-msgid "Targeted Research"
+msgid "Targeted Study"
 msgstr "定向精研"
 
 
