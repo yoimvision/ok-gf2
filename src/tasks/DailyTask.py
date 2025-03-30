@@ -106,8 +106,7 @@ class DailyTask(BaseGfTask):
         self.info_set('current_task', 'activity')
         if self.wait_click_ocr(match=['限时开启'], box='top_right', after_sleep=0.5, raise_if_not_found=False,
                                time_out=4):
-            if activities := self.wait_ocr(match=[re.compile(r'^\d+天\d+小时')], box='bottom_left',
-                                           raise_if_not_found=False, time_out=4):
+            if activities := self.find_activities():
                 self.click(activities[0])
                 if to_click := self.wait_ocr(match=['活动战役', re.compile('物资')], box='bottom',
                                              raise_if_not_found=False, time_out=4, settle_time=2, log=True):
@@ -119,6 +118,10 @@ class DailyTask(BaseGfTask):
                         self.click(battles[-1])
                         self.fast_combat(6, default_cost=1)
         self.ensure_main()
+
+    def find_activities(self):
+        return self.wait_ocr(match=[re.compile(r'^\d+天\d+小时')], box='bottom_left',
+                             raise_if_not_found=False, time_out=4)
 
     def gongongqu(self):
         self.info_set('current_task', 'public area')

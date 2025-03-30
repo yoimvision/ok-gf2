@@ -16,6 +16,9 @@ msgstr ""
 
 # --- Previous Strings ---
 
+msgid "^\d+天\d+小时"
+msgstr "^\d+\s+[Dd]ays?\s+\d+\s+[Hh]ours?"
+
 # Strings extracted from the 'pop_ups' list used in 'match' parameter
 msgid "Tap the blank area to close"
 msgstr "点击空白处关闭"
